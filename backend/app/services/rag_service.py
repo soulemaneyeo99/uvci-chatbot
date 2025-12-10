@@ -30,10 +30,16 @@ class RAGService:
             )
             logger.info("✅ Nouvelle collection ChromaDB créée")
         
-        # Modèle pour les embeddings (multilingue français/anglais)
-        logger.info("📥 Chargement du modèle d'embeddings...")
-        self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-        logger.info("✅ Modèle d'embeddings chargé")
+        # Modèle pour les embeddings (chargement paresseux)
+        self.embedding_model = None
+
+    def _get_embedding_model(self):
+        """Charge le modèle uniquement quand nécessaire"""
+        if not self.embedding_model:
+            logger.info("📥 Chargement du modèle d'embeddings (Lazy Load)...")
+            self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
+            logger.info("✅ Modèle d'embeddings chargé")
+        return self.embedding_model
     
     def index_document(self, document_id: str, file_path: str, filename: str) -> int:
         """
