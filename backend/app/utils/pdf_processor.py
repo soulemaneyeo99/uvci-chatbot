@@ -1,6 +1,6 @@
 
 #### **15. Fichier `app/utils/pdf_processor.py`**
-import PyPDF2
+import pypdf
 import pdfplumber
 from typing import List
 import re
@@ -15,18 +15,18 @@ class PDFProcessor:
         
         Args:
             pdf_path: Chemin vers le fichier PDF
-            method: 'pdfplumber' (meilleur) ou 'pypdf2' (fallback)
+            method: 'pdfplumber' (meilleur) ou 'pypdf' (fallback)
         """
         try:
             if method == "pdfplumber":
                 return PDFProcessor._extract_with_pdfplumber(pdf_path)
             else:
-                return PDFProcessor._extract_with_pypdf2(pdf_path)
+                return PDFProcessor._extract_with_pypdf(pdf_path)
         except Exception as e:
             print(f"❌ Erreur extraction PDF: {str(e)}")
             # Essayer la méthode alternative
             try:
-                alt_method = "pypdf2" if method == "pdfplumber" else "pdfplumber"
+                alt_method = "pypdf" if method == "pdfplumber" else "pdfplumber"
                 return PDFProcessor.extract_text(pdf_path, alt_method)
             except:
                 return ""
@@ -43,11 +43,11 @@ class PDFProcessor:
         return text
     
     @staticmethod
-    def _extract_with_pypdf2(pdf_path: str) -> str:
-        """Extraction avec PyPDF2 (fallback)"""
+    def _extract_with_pypdf(pdf_path: str) -> str:
+        """Extraction avec pypdf (fallback)"""
         text = ""
         with open(pdf_path, 'rb') as file:
-            reader = PyPDF2.PdfReader(file)
+            reader = pypdf.PdfReader(file)
             for page in reader.pages:
                 page_text = page.extract_text()
                 if page_text:
