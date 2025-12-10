@@ -1,0 +1,20 @@
+# FastAPI et serveur
+fastapi==0.109.0
+uvicorn==0.27.0
+python-multipart==0.0.6
+
+# Base de données
+sqlalchemy==2.0.25
+
+# Google Gemini
+google-generativeai==0.3.2
+
+# Utilitaires
+python-dotenv==1.0.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+
+# Securite & Auth
+passlib[bcrypt]==1.7.4
+python-jose[cryptography]==3.3.0
+email-validator==2.1.1 # Assuming a common version, as none was specified and the provided `==3.3.0` was ambiguous.
