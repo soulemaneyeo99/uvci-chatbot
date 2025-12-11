@@ -9,12 +9,28 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 try:
+    if not settings.GOOGLE_API_KEY:
+        logger.error("❌ GOOGLE_API_KEY est vide dans les settings !")
+    
     genai.configure(api_key=settings.GOOGLE_API_KEY)
-    key_status = "PRÉSENTE" if settings.GOOGLE_API_KEY and len(settings.GOOGLE_API_KEY) > 10 else "MANQUANTE/INVALIDE"
-    logger.info(f"✅ Gemini API configurée. Clé: {key_status}")
+    
+    # Masquer la clé pour les logs (montrer début/fin)
+    masked_key = f"{settings.GOOGLE_API_KEY[:5]}...{settings.GOOGLE_API_KEY[-5:]}" if settings.GOOGLE_API_KEY else "None"
+    logger.info(f"🔑 Clé API chargée: {masked_key}")
+    
+    # LISTER LES MODÈLES DISPONIBLES
+    try:
+        logger.info("📡 Tentative de listage des modèles disponibles...")
+        available_models = []
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                available_models.append(m.name)
+        logger.info(f"📋 Modèles disponibles pour cette clé : {available_models}")
+    except Exception as e:
+        logger.error(f"❌ Impossible de lister les modèles (Clé invalide ?): {e}")
+
 except Exception as e:
     logger.error(f"❌ Échec configuration Gemini API: {e}")
-    # On continue pour ne pas crasher l'import, mais le service sera HS
 
 class GeminiService:
     def __init__(self):
@@ -26,18 +42,18 @@ class GeminiService:
         try:
             # NOUVEAU : Prioriser les modèles disponibles et gratuits
             model_candidates = [
-                'gemini-1.5-flash-latest', # Version stable la plus récente
-                'gemini-1.5-flash',      # Alias commun
-                'gemini-1.5-flash-001',  # Version spécifique
-                'gemini-pro',            # Fallback (Legacy mais fiable)
-                'gemini-1.0-pro'         # Autre alias
+                'gemini-1.5-flash',      # Standard
+                'gemini-1.5-flash-latest', 
+                'gemini-1.5-flash-001',
+                'gemini-pro',
+                'gemini-1.0-pro'
             ]
             
             model_name = None
             for candidate in model_candidates:
                 try:
+                    logger.info(f"🧪 Test du modèle : {candidate}...")
                     test_model = genai.GenerativeModel(candidate)
-                    # Test réel pour valider le modèle ET la version API
                     response = test_model.generate_content("test")
                     if response:
                         model_name = candidate
@@ -48,20 +64,17 @@ class GeminiService:
                     continue
             
             if not model_name:
-                logger.error("❌ Aucun modèle Gemini disponible (Quota ou Erreur)")
-                # On ne raise PAS pour ne pas crasher le serveur
+                logger.error("❌ AUCUN modèle n'a fonctionné. Vérifiez les logs ci-dessus pour la liste des modèles disponibles.")
             else:
                 self.model = genai.GenerativeModel(model_name)
                 self.model_name = model_name
                 logger.info(f"🚀 Modèle Gemini initialisé: {model_name}")
             
-            # Charger la base de connaissances UVCI
             self.uvci_knowledge = get_uvci_knowledge()
             logger.info("✅ Base de connaissances UVCI chargée")
             
         except Exception as e:
             logger.error(f"❌ Erreur critique initialisation Gemini: {e}")
-            # Ne pas raise pour laisser le serveur démarrer
     
     def _build_system_prompt(self) -> str:
         """Construit le prompt système avec connaissances UVCI"""
