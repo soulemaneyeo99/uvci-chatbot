@@ -1,10 +1,11 @@
 import chromadb
-from sentence_transformers import SentenceTransformer
+import google.generativeai as genai
 from typing import List, Dict, Tuple
 from app.config import settings
 from app.utils.pdf_processor import pdf_processor
 import os
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -12,11 +13,17 @@ class RAGService:
     """Service pour Retrieval Augmented Generation"""
     
     def __init__(self):
+        # Configurer Gemini
+        if settings.GOOGLE_API_KEY:
+            genai.configure(api_key=settings.GOOGLE_API_KEY)
+        else:
+            logger.warning("⚠️ GOOGLE_API_KEY manquant. Le RAG ne fonctionnera pas.")
+
         # Créer le dossier de persistance s'il n'existe pas
         persist_directory = "./data/chroma"
         os.makedirs(persist_directory, exist_ok=True)
         
-        # Initialiser ChromaDB avec la NOUVELLE API
+        # Initialiser ChromaDB
         self.chroma_client = chromadb.PersistentClient(path=persist_directory)
         
         # Créer ou récupérer la collection
@@ -30,23 +37,42 @@ class RAGService:
             )
             logger.info("✅ Nouvelle collection ChromaDB créée")
         
-        # Modèle pour les embeddings (chargement paresseux)
-        self.embedding_model = None
-
-    def _get_embedding_model(self):
-        """Charge le modèle uniquement quand nécessaire"""
-        if not self.embedding_model:
-            logger.info("📥 Chargement du modèle d'embeddings (Lazy Load)...")
-            self.embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
-            logger.info("✅ Modèle d'embeddings chargé")
-        return self.embedding_model
+        logger.info("✅ RAG Service initialisé (Gemini Embeddings)")
     
+    def _get_embedding(self, text: str) -> List[float]:
+        """Génère un embedding avec Gemini"""
+        try:
+            # Nettoyer et tronquer si nécessaire (limite Gemini)
+            if len(text) > 9000:
+                text = text[:9000]
+            
+            result = genai.embed_content(
+                model="models/embedding-001",
+                content=text,
+                task_type="retrieval_document",
+                title="Document chunk"
+            )
+            return result['embedding']
+        except Exception as e:
+            logger.error(f"❌ Erreur embedding Gemini: {str(e)}")
+            return []
+
+    def _get_query_embedding(self, text: str) -> List[float]:
+        """Génère un embedding pour une requête"""
+        try:
+            result = genai.embed_content(
+                model="models/embedding-001",
+                content=text,
+                task_type="retrieval_query"
+            )
+            return result['embedding']
+        except Exception as e:
+            logger.error(f"❌ Erreur embedding requête Gemini: {str(e)}")
+            return []
+
     def index_document(self, document_id: str, file_path: str, filename: str) -> int:
         """
         Index un document PDF dans la base vectorielle
-        
-        Returns:
-            Nombre de chunks indexés
         """
         try:
             # 1. Extraire le texte du PDF
@@ -61,38 +87,51 @@ class RAGService:
             clean_text = pdf_processor.clean_text(raw_text)
             
             # 3. Découper en chunks
+            # Augmenter la taille des chunks pour Gemini (il gère mieux le contexte)
             chunks = pdf_processor.chunk_text(
                 clean_text,
-                chunk_size=settings.CHUNK_SIZE,
-                overlap=settings.CHUNK_OVERLAP
+                chunk_size=1000, 
+                overlap=200
             )
             
             logger.info(f"✂️  {len(chunks)} chunks créés pour {filename}")
             
-            # 4. Créer les embeddings
-            embeddings = self.embedding_model.encode(chunks, show_progress_bar=False)
+            # 4. Créer les embeddings et ajouter à ChromaDB
+            ids = []
+            embeddings = []
+            valid_chunks = []
+            metadatas = []
+
+            for i, chunk in enumerate(chunks):
+                # Pause pour éviter de spammer l'API (Rate limit)
+                # Note: Sur la version synchrone on ne peut pas await, mais c'est rapide.
+                
+                embedding = self._get_embedding(chunk)
+                if embedding:
+                    ids.append(f"{document_id}_chunk_{i}")
+                    embeddings.append(embedding)
+                    valid_chunks.append(chunk)
+                    metadatas.append({
+                        "document_id": document_id,
+                        "filename": filename,
+                        "chunk_index": i,
+                        "total_chunks": len(chunks)
+                    })
             
-            # 5. Ajouter à ChromaDB
-            chunk_ids = [f"{document_id}_chunk_{i}" for i in range(len(chunks))]
-            metadatas = [
-                {
-                    "document_id": document_id,
-                    "filename": filename,
-                    "chunk_index": i,
-                    "total_chunks": len(chunks)
-                }
-                for i in range(len(chunks))
-            ]
-            
+            if not ids:
+                logger.warning("Aucun embedding généré.")
+                return 0
+
+            # 5. Ajouter à ChromaDB par lots (batch)
             self.collection.add(
-                ids=chunk_ids,
-                embeddings=embeddings.tolist(),
-                documents=chunks,
+                ids=ids,
+                embeddings=embeddings,
+                documents=valid_chunks,
                 metadatas=metadatas
             )
             
-            logger.info(f"✅ {len(chunks)} chunks indexés avec succès")
-            return len(chunks)
+            logger.info(f"✅ {len(ids)} chunks indexés avec succès")
+            return len(ids)
             
         except Exception as e:
             logger.error(f"❌ Erreur lors de l'indexation: {str(e)}")
@@ -101,20 +140,20 @@ class RAGService:
     def search(self, query: str, top_k: int = None) -> Tuple[List[str], List[str]]:
         """
         Recherche les chunks pertinents pour une requête
-        
-        Returns:
-            (chunks, sources) - Textes pertinents et noms des documents sources
         """
         if top_k is None:
             top_k = settings.TOP_K_RESULTS
         
         try:
             # 1. Créer l'embedding de la requête
-            query_embedding = self.embedding_model.encode([query])[0]
+            query_embedding = self._get_query_embedding(query)
             
+            if not query_embedding:
+                return [], []
+
             # 2. Rechercher dans ChromaDB
             results = self.collection.query(
-                query_embeddings=[query_embedding.tolist()],
+                query_embeddings=[query_embedding],
                 n_results=top_k
             )
             
