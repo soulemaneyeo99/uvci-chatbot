@@ -10,10 +10,11 @@ logger = logging.getLogger(__name__)
 
 try:
     genai.configure(api_key=settings.GOOGLE_API_KEY)
-    logger.info("✅ Gemini API configurée avec succès")
+    key_status = "PRÉSENTE" if settings.GOOGLE_API_KEY and len(settings.GOOGLE_API_KEY) > 10 else "MANQUANTE/INVALIDE"
+    logger.info(f"✅ Gemini API configurée. Clé: {key_status}")
 except Exception as e:
     logger.error(f"❌ Échec configuration Gemini API: {e}")
-    raise
+    # On continue pour ne pas crasher l'import, mais le service sera HS
 
 class GeminiService:
     def __init__(self):
@@ -191,9 +192,11 @@ Assistant UVCI:"""
     def generate_conversation_title(self, first_message: str) -> str:
         """Génère un titre court pour conversation"""
         try:
-            prompt = f"""Titre court (3-6 mots) pour cette conversation UVCI.
-Uniquement le titre, sans guillemets.
+            if not self.model:
+                return first_message[:50]
 
+            prompt = f"""Titre court (3-6 mots) pour cette conversation UVCI.
+UAM
 Question: {first_message}
 
 Titre:"""
