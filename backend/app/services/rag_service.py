@@ -46,29 +46,49 @@ class RAGService:
             if len(text) > 9000:
                 text = text[:9000]
             
+            # Utiliser le modèle d'embedding le plus récent
             result = genai.embed_content(
-                model="models/embedding-001",
+                model="models/text-embedding-004",
                 content=text,
                 task_type="retrieval_document",
                 title="Document chunk"
             )
             return result['embedding']
         except Exception as e:
-            logger.error(f"❌ Erreur embedding Gemini: {str(e)}")
-            return []
+            logger.warning(f"⚠️ Erreur embedding text-embedding-004, essai embedding-001: {str(e)}")
+            try:
+                # Fallback sur l'ancien modèle
+                result = genai.embed_content(
+                    model="models/embedding-001",
+                    content=text,
+                    task_type="retrieval_document",
+                    title="Document chunk"
+                )
+                return result['embedding']
+            except Exception as e2:
+                logger.error(f"❌ Erreur embedding persistante: {str(e2)}")
+                return []
 
     def _get_query_embedding(self, text: str) -> List[float]:
         """Génère un embedding pour une requête"""
         try:
             result = genai.embed_content(
-                model="models/embedding-001",
+                model="models/text-embedding-004",
                 content=text,
                 task_type="retrieval_query"
             )
             return result['embedding']
         except Exception as e:
-            logger.error(f"❌ Erreur embedding requête Gemini: {str(e)}")
-            return []
+            try:
+                result = genai.embed_content(
+                    model="models/embedding-001",
+                    content=text,
+                    task_type="retrieval_query"
+                )
+                return result['embedding']
+            except Exception as e2:
+                logger.error(f"❌ Erreur embedding requête Gemini: {str(e2)}")
+                return []
 
     def index_document(self, document_id: str, file_path: str, filename: str) -> int:
         """

@@ -40,13 +40,13 @@ class GeminiService:
         self.uvci_knowledge = ""
         
         try:
-            # NOUVEAU : Prioriser les modèles disponibles et gratuits
+            # NOUVEAU : Prioriser les modèles effectivment disponibles (selon les logs)
             model_candidates = [
-                'gemini-1.5-flash',      # Standard
-                'gemini-1.5-flash-latest', 
-                'gemini-1.5-flash-001',
-                'gemini-pro',
-                'gemini-1.0-pro'
+                'gemini-2.5-flash',      # Présent dans vos logs
+                'gemini-flash-latest',   # Présent dans vos logs
+                'gemini-2.0-flash-exp',  # Présent dans vos logs
+                'gemini-1.5-flash',      # Fallback classique
+                'gemini-pro'
             ]
             
             model_name = None
