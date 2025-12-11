@@ -23,27 +23,27 @@ class GeminiService:
         self.uvci_knowledge = ""
         
         try:
-            # NOUVEAU : Prioriser les modèles avec quota élevé
+            # NOUVEAU : Prioriser les modèles disponibles et gratuits
             model_candidates = [
-                'gemini-1.5-flash',      # 1500 req/jour - MEILLEUR CHOIX
-                'gemini-1.5-flash-8b',   # 1500 req/jour
-                'gemini-1.5-pro',        # 50 req/jour mais plus puissant
-                'gemini-2.0-flash-exp',  # 50 req/jour
-                'gemini-pro'             # Fallback
+                'gemini-1.5-flash-latest', # Version stable la plus récente
+                'gemini-1.5-flash',      # Alias commun
+                'gemini-1.5-flash-001',  # Version spécifique
+                'gemini-pro',            # Fallback (Legacy mais fiable)
+                'gemini-1.0-pro'         # Autre alias
             ]
             
             model_name = None
             for candidate in model_candidates:
                 try:
                     test_model = genai.GenerativeModel(candidate)
-                    # Test rapide pour vérifier si le modèle répond (et accès quota)
-                    # Note: generate_content peut coûter du quota, on peut juste instancier
-                    # Mais on veut être sûr qu'il marche.
-                    model_name = candidate
-                    logger.info(f"✅ Modèle sélectionné: {model_name}")
-                    break
+                    # Test réel pour valider le modèle ET la version API
+                    response = test_model.generate_content("test")
+                    if response:
+                        model_name = candidate
+                        logger.info(f"✅ Modèle VALIDÉ et sélectionné: {model_name}")
+                        break
                 except Exception as e:
-                    logger.warning(f"⚠️ {candidate} non disponible: {e}")
+                    logger.warning(f"⚠️ {candidate} échoué: {e}")
                     continue
             
             if not model_name:
