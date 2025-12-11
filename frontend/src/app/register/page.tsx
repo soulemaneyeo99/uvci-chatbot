@@ -11,6 +11,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [role, setRole] = useState('student');
     const { register, isLoading } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -30,7 +31,7 @@ export default function RegisterPage() {
 
         setIsSubmitting(true);
         try {
-            await register({ full_name: fullName, email, password });
+            await register({ full_name: fullName, email, password, role });
         } catch (err: any) {
             setError('Échec de l\'inscription. Cet email est peut-être déjà utilisé.');
             setIsSubmitting(false);
@@ -56,6 +57,31 @@ export default function RegisterPage() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                            <button
+                                type="button"
+                                onClick={() => setRole('student')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${role === 'student'
+                                        ? 'bg-uvci-orange/20 border-uvci-orange text-white'
+                                        : 'bg-white/5 border-white/10 text-purple-200 hover:bg-white/10'
+                                    }`}
+                            >
+                                <GraduationCap size={24} className="mb-1" />
+                                <span className="text-sm font-medium">Étudiant</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRole('admin')}
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${role === 'admin'
+                                        ? 'bg-uvci-orange/20 border-uvci-orange text-white'
+                                        : 'bg-white/5 border-white/10 text-purple-200 hover:bg-white/10'
+                                    }`}
+                            >
+                                <Lock size={24} className="mb-1" />
+                                <span className="text-sm font-medium">Enseignant / Admin</span>
+                            </button>
+                        </div>
+
                         {error && (
                             <div className="bg-red-500/10 border border-red-500/50 rounded-xl p-3 text-center">
                                 <p className="text-red-200 text-xs">{error}</p>
