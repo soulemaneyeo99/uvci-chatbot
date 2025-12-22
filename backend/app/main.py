@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
 from app.api import chat, history, auth, admin
+from datetime import datetime
 from app.models.user import User  # Import pour créer la table
 
 # Créer les tables dans la base de données
@@ -56,6 +57,11 @@ async def health_check():
         "gemini_configured": bool(settings.GOOGLE_API_KEY),
         "database": "connected"
     }
+
+@app.get("/api/ping")
+async def ping():
+    """Endpoint pour éviter que Render ne s'endorme (Keep-alive)"""
+    return {"status": "pong", "timestamp": datetime.now().isoformat()}
 
 # Démarrage du Scheduler
 from app.services.scheduler_service import scheduler_service
