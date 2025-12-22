@@ -12,7 +12,9 @@ import {
     Clock,
     AlertCircle,
     GraduationCap,
-    ArrowRight
+    ArrowRight,
+    ClipboardList,
+    Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -22,6 +24,7 @@ export default function DashboardPage() {
     const [stats, setStats] = useState<any>(null);
     const [announcements, setAnnouncements] = useState<any[]>([]);
     const [events, setEvents] = useState<any[]>([]);
+    const [assignments, setAssignments] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -33,14 +36,16 @@ export default function DashboardPage() {
     const loadData = async () => {
         try {
             setLoading(true);
-            const [s, a, c] = await Promise.all([
+            const [s, a, c, as] = await Promise.all([
                 dashboardAPI.getStats(),
                 dashboardAPI.getAnnouncements(),
-                dashboardAPI.getCalendar()
+                dashboardAPI.getCalendar(),
+                dashboardAPI.getAssignments()
             ]);
             setStats(s);
             setAnnouncements(a);
             setEvents(c);
+            setAssignments(as);
         } catch (error) {
             console.error("Erreur dashboard:", error);
         } finally {
@@ -109,7 +114,7 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Widget 2: Prochains Devoirs (Mini Cal) */}
+                        {/* Widget 2: Calendrier Académique */}
                         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -146,15 +151,49 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Widget 3: Annonces */}
+                        {/* Widget 3: Devoirs à venir (NOUVEAU) */}
+                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-lg font-bold flex items-center gap-2">
+                                    <ClipboardList className="w-5 h-5 text-red-500" />
+                                    À ne pas oublier ⏳
+                                </h3>
+                                <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                    {assignments.filter(a => a.status === 'pending').length} Action(s)
+                                </span>
+                            </div>
+                            <div className="space-y-3">
+                                {assignments.length > 0 ? assignments.map((assign) => (
+                                    <div key={assign.id} className="p-4 bg-gray-50 rounded-2xl border border-transparent hover:border-gray-200 transition-all group flex items-start gap-3">
+                                        <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${assign.priority === 'high' ? 'bg-red-500' : assign.priority === 'medium' ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 text-sm mb-1 group-hover:text-uvci-purple transition-colors">
+                                                {assign.title}
+                                            </h4>
+                                            <div className="flex items-center gap-2 text-[10px] text-gray-500">
+                                                <Clock className="w-3 h-3" />
+                                                <span>Échéance : {assign.due_date}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="py-8 text-center bg-gray-50 rounded-2xl text-gray-400">
+                                        <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                                        <p className="text-xs">Tout est à jour !</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Widget 4: Annonces */}
                         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col h-full">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
-                                    <Bell className="w-5 h-5 text-red-500" />
-                                    Dernières Annonces
+                                    <Bell className="w-5 h-5 text-blue-500" />
+                                    UVCI Annonces
                                 </h3>
                             </div>
-                            <div className="flex-1 space-y-4 overflow-y-auto max-h-[400px] pr-2">
+                            <div className="flex-1 space-y-4 overflow-y-auto max-h-[300px] pr-2">
                                 {announcements.map((ann) => (
                                     <div key={ann.id} className="p-4 bg-gray-50 rounded-2xl border border-transparent hover:border-gray-200 transition-all group">
                                         <div className="flex items-center justify-between mb-2">
@@ -173,17 +212,22 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Widget 4: Quick Actions */}
-                        <div className="bg-gradient-to-br from-uvci-purple to-[#4c1d95] rounded-3xl p-8 text-white shadow-xl shadow-purple-500/20 md:col-span-2 relative overflow-hidden">
+                        {/* Widget 5: Quick Actions / AI Tip */}
+                        <div className="bg-gradient-to-br from-uvci-purple via-[#4c1d95] to-black rounded-3xl p-8 text-white shadow-xl shadow-purple-500/20 relative overflow-hidden flex flex-col justify-center">
                             <div className="relative z-10">
-                                <h3 className="text-2xl font-bold mb-2">Prêt pour un examen blanc ?</h3>
-                                <p className="text-purple-100 mb-6 max-w-md">L'IA peut générer des tests personnalisés basés sur vos cours PDF pour vous préparer aux évaluations.</p>
-                                <button disabled className="bg-white text-uvci-purple px-6 py-3 rounded-2xl font-bold shadow-lg hover:bg-gray-100 transition-colors opacity-80 flex items-center gap-2">
-                                    <CheckCircle2 className="w-5 h-5" />
-                                    Générer un Test (Bientôt)
-                                </button>
+                                <h3 className="text-xl font-bold mb-2 flex items-center gap-2">
+                                    <Sparkles className="w-5 h-5 text-yellow-400" />
+                                    Astuce IA
+                                </h3>
+                                <p className="text-purple-100 text-sm mb-6 leading-relaxed">
+                                    Saviez-vous que je peux résumer vos notes de cours et vous interroger sur les points clés ?
+                                    Importez vos PDF dans le chat pour commencer !
+                                </p>
+                                <Link href="/" className="inline-flex items-center gap-2 bg-white text-uvci-purple px-4 py-2 rounded-xl font-bold text-sm shadow-lg hover:bg-gray-100 transition-colors">
+                                    Essayer maintenant
+                                </Link>
                             </div>
-                            <BookOpen className="absolute right-[-20px] bottom-[-20px] w-48 h-48 text-white/10 rotate-12" />
+                            <BookOpen className="absolute right-[-20px] bottom-[-20px] w-48 h-48 text-white/5 rotate-12" />
                         </div>
 
                     </div>

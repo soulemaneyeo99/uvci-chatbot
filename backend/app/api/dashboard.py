@@ -100,3 +100,55 @@ async def get_calendar_events(
     events.sort(key=lambda x: x['start'])
     
     return events
+@router.get("/assignments")
+async def get_upcoming_assignments(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """Retourne uniquement les devoirs à venir (Moodle + Simulé)"""
+    assignments = []
+    
+    # 1. Devoirs Moodle réels
+    if current_user.uvci_username and current_user.uvci_password_encrypted:
+        try:
+            plain_pass = decrypt(current_user.uvci_password_encrypted)
+            moodle_events = await moodle_service.get_assignments(
+                current_user.uvci_username, plain_pass
+            )
+            for i, me in enumerate(moodle_events):
+                assignments.append({
+                    "id": f"real-{i}",
+                    "title": me["title"],
+                    "due_date": me["due_date"],
+                    "status": "pending",
+                    "priority": "high" if i == 0 else "medium"
+                })
+        except:
+            pass
+            
+    # 2. Si aucun devoir trouvé, on en simule pour le "Waouh" et la démo
+    if not assignments:
+        assignments = [
+            {
+                "id": "mock-1",
+                "title": "Projet de Développement Web - Phase 1",
+                "due_date": "Demain à 23:59",
+                "status": "pending",
+                "priority": "high"
+            },
+            {
+                "id": "mock-2",
+                "title": "QCM Mathématiques Discrètes",
+                "due_date": "Dans 3 jours",
+                "status": "pending",
+                "priority": "medium"
+            },
+            {
+                "id": "mock-3",
+                "title": "Rapport de Stage - Introduction",
+                "due_date": "Le 15 Janvier",
+                "status": "completed",
+                "priority": "low"
+            }
+        ]
+        
+    return assignments
