@@ -27,17 +27,21 @@ export const ChatHeader: React.FC = () => {
                 <div className="flex items-center gap-1">
                     {user?.role === 'admin' && (
                         <Link href="/admin">
-                            <button className="p-2 text-gray-500 hover:text-uvci-purple hover:bg-purple-50 rounded-xl transition-colors">
-                                <Settings size={20} />
+                            <button 
+                                className="p-2 text-gray-500 hover:text-uvci-purple hover:bg-purple-50 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-2"
+                                aria-label="Accéder à l'administration"
+                            >
+                                <Settings size={20} aria-hidden="true" />
                             </button>
                         </Link>
                     )}
                     <button
                         onClick={logout}
-                        className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
                         title="Se déconnecter"
+                        aria-label="Se déconnecter"
                     >
-                        <LogOut size={20} />
+                        <LogOut size={20} aria-hidden="true" />
                     </button>
                 </div>
             </div>

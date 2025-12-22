@@ -57,27 +57,33 @@ export default function RegisterPage() {
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="grid grid-cols-2 gap-3 mb-4" role="radiogroup" aria-label="Type de compte">
                             <button
                                 type="button"
                                 onClick={() => setRole('student')}
-                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${role === 'student'
+                                role="radio"
+                                aria-checked={role === 'student'}
+                                aria-label="Compte étudiant"
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-uvci-orange focus:ring-offset-2 ${role === 'student'
                                         ? 'bg-uvci-orange/20 border-uvci-orange text-white'
                                         : 'bg-white/5 border-white/10 text-purple-200 hover:bg-white/10'
                                     }`}
                             >
-                                <GraduationCap size={24} className="mb-1" />
+                                <GraduationCap size={24} className="mb-1" aria-hidden="true" />
                                 <span className="text-sm font-medium">Étudiant</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setRole('admin')}
-                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all ${role === 'admin'
+                                role="radio"
+                                aria-checked={role === 'admin'}
+                                aria-label="Compte enseignant ou administrateur"
+                                className={`flex flex-col items-center justify-center p-3 rounded-xl border transition-all focus:outline-none focus:ring-2 focus:ring-uvci-orange focus:ring-offset-2 ${role === 'admin'
                                         ? 'bg-uvci-orange/20 border-uvci-orange text-white'
                                         : 'bg-white/5 border-white/10 text-purple-200 hover:bg-white/10'
                                     }`}
                             >
-                                <Lock size={24} className="mb-1" />
+                                <Lock size={24} className="mb-1" aria-hidden="true" />
                                 <span className="text-sm font-medium">Enseignant / Admin</span>
                             </button>
                         </div>
@@ -98,6 +104,9 @@ export default function RegisterPage() {
                                     value={fullName}
                                     onChange={(e) => setFullName(e.target.value)}
                                     placeholder="Koffi Jean"
+                                    aria-label="Nom complet"
+                                    aria-required="true"
+                                    autoComplete="name"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-11 py-3 text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-uvci-orange/50 focus:border-transparent transition-all sm:text-sm"
                                 />
                             </div>
@@ -113,6 +122,9 @@ export default function RegisterPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="etudiant@uvci.edu.ci"
+                                    aria-label="Adresse email académique"
+                                    aria-required="true"
+                                    autoComplete="email"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-11 py-3 text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-uvci-orange/50 focus:border-transparent transition-all sm:text-sm"
                                 />
                             </div>
@@ -128,8 +140,13 @@ export default function RegisterPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
+                                    aria-label="Mot de passe"
+                                    aria-required="true"
+                                    autoComplete="new-password"
+                                    aria-describedby="password-help"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-11 py-3 text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-uvci-orange/50 focus:border-transparent transition-all sm:text-sm"
                                 />
+                                <span id="password-help" className="sr-only">Le mot de passe doit contenir au moins 6 caractères</span>
                             </div>
                         </div>
 
@@ -143,6 +160,9 @@ export default function RegisterPage() {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     placeholder="••••••••"
+                                    aria-label="Confirmer le mot de passe"
+                                    aria-required="true"
+                                    autoComplete="new-password"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-11 py-3 text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-uvci-orange/50 focus:border-transparent transition-all sm:text-sm"
                                 />
                             </div>
@@ -151,7 +171,9 @@ export default function RegisterPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting || isLoading}
-                            className="w-full bg-gradient-to-r from-uvci-orange to-amber-600 hover:from-amber-500 hover:to-amber-700 text-white font-bold py-3.5 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                            aria-label="S'inscrire"
+                            aria-busy={isSubmitting || isLoading}
+                            className="w-full bg-gradient-to-r from-uvci-orange to-amber-600 hover:from-amber-500 hover:to-amber-700 text-white font-bold py-3.5 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2 focus:outline-none focus:ring-2 focus:ring-uvci-orange focus:ring-offset-2 focus:ring-offset-transparent"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="animate-spin" size={20} />

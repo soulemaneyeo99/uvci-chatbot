@@ -18,6 +18,7 @@ export default function Home() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioSupport, setAudioSupport] = useState({ recognition: false, synthesis: false });
   const [streamingContent, setStreamingContent] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -32,6 +33,7 @@ export default function Home() {
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
 
+    setError(null);
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -69,25 +71,30 @@ export default function Home() {
           setMessages(prev => [...prev, assistantMessage]);
           setStreamingContent('');
           setIsLoading(false);
+          setError(null);
 
           // Auto speak if enabled (optional feature)
           // handleSpeak(accumulatedContent);
         },
-        (error) => {
-          console.error('Erreur:', error);
-          const errorMessage: Message = {
+        (errorMessage) => {
+          console.error('Erreur:', errorMessage);
+          setError(errorMessage);
+          const errorMsg: Message = {
             id: Date.now().toString(),
             role: 'assistant',
-            content: '⚠️ Erreur de connexion au serveur.',
+            content: `⚠️ ${errorMessage || 'Erreur de connexion au serveur. Veuillez réessayer.'}`,
             timestamp: new Date(),
           };
-          setMessages(prev => [...prev, errorMessage]);
+          setMessages(prev => [...prev, errorMsg]);
           setStreamingContent('');
           setIsLoading(false);
         }
       );
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error?.message || 'Une erreur inattendue s\'est produite.';
+      setError(errorMsg);
       setIsLoading(false);
+      setStreamingContent('');
     }
   };
 
@@ -96,14 +103,25 @@ export default function Home() {
       speechService.stopListening();
       setIsRecording(false);
     } else {
-      setIsRecording(true);
-      speechService.startListening(
-        (transcript) => {
-          handleSendMessage(transcript);
-          setIsRecording(false);
-        },
-        () => setIsRecording(false)
-      );
+      try {
+        setIsRecording(true);
+        setError(null);
+        speechService.startListening(
+          (transcript) => {
+            if (transcript.trim()) {
+              handleSendMessage(transcript);
+            }
+            setIsRecording(false);
+          },
+          (error) => {
+            setIsRecording(false);
+            setError('Erreur lors de la reconnaissance vocale. Veuillez réessayer.');
+          }
+        );
+      } catch (error: any) {
+        setIsRecording(false);
+        setError('La reconnaissance vocale n\'est pas disponible sur votre navigateur.');
+      }
     }
   };
 
@@ -120,14 +138,31 @@ export default function Home() {
 
   return (
     <ProtectedRoute>
-      <div className="flex flex-col h-screen bg-gray-50/50">
+      <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden">
         <ChatHeader />
 
-        <div className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto">
+        <main className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto" role="main" aria-live="polite" aria-atomic="false">
+          {error && (
+            <div className="mx-4 mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm" role="alert">
+              <div className="flex items-start gap-3">
+                <span className="text-red-500 text-xl" aria-hidden="true">⚠️</span>
+                <div className="flex-1">
+                  <p className="text-red-800 font-medium text-sm">{error}</p>
+                  <button
+                    onClick={() => setError(null)}
+                    className="mt-2 text-red-600 hover:text-red-800 text-xs underline focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+                    aria-label="Fermer le message d'erreur"
+                  >
+                    Fermer
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           {messages.length === 0 && !streamingContent ? (
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-8">
-              <div className="w-20 h-20 bg-gradient-to-br from-uvci-green to-emerald-500 rounded-3xl flex items-center justify-center shadow-lg shadow-green-500/20 mb-6 animate-bounce-slow">
-                <span className="text-4xl">👋</span>
+            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-8 px-4">
+              <div className="w-20 h-20 bg-gradient-to-br from-uvci-green to-emerald-500 rounded-3xl flex items-center justify-center shadow-lg shadow-green-500/20 mb-6 animate-bounce-slow" aria-hidden="true">
+                <span className="text-4xl" role="img" aria-label="Salutation">👋</span>
               </div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
                 Comment puis-je vous aider ?
@@ -139,7 +174,7 @@ export default function Home() {
               <SuggestionCards onSelect={handleSendMessage} />
             </div>
           ) : (
-            <div className="py-6 px-4 pb-20">
+            <div className="py-6 px-4 pb-20" role="log" aria-label="Conversation">
               {messages.map((msg) => (
                 <ChatBubble
                   key={msg.id}
@@ -163,11 +198,12 @@ export default function Home() {
               )}
 
               {isLoading && !streamingContent && (
-                <div className="flex justify-start px-1 mb-6">
+                <div className="flex justify-start px-1 mb-6" role="status" aria-live="polite">
                   <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
-                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }} aria-hidden="true"></div>
+                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '150ms' }} aria-hidden="true"></div>
+                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }} aria-hidden="true"></div>
+                    <span className="sr-only">L'assistant est en train de réfléchir...</span>
                   </div>
                 </div>
               )}
@@ -175,7 +211,7 @@ export default function Home() {
               <div ref={messagesEndRef} className="h-4" />
             </div>
           )}
-        </div>
+        </main>
 
         <ChatInput
           onSendMessage={handleSendMessage}

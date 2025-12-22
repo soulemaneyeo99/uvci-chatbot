@@ -33,7 +33,7 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isSpeaking, onS
                 )}
 
                 {/* Content */}
-                <div className={`px-4 py-3 ${isUser ? 'text-white' : 'text-gray-800'}`}>
+                <div className={`px-4 py-3 ${isUser ? 'text-white' : 'text-gray-800'}`} role="article">
                     <MarkdownMessage content={message.content} isUser={isUser} />
                 </div>
 
@@ -62,10 +62,12 @@ export const ChatBubble: React.FC<ChatBubbleProps> = ({ message, isSpeaking, onS
                         {!isUser && (
                             <button
                                 onClick={() => onSpeak(message.content)}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-uvci-purple"
-                                title="Lire à haute voix"
+                                aria-label={isSpeaking ? 'Arrêter la lecture vocale' : 'Lire le message à haute voix'}
+                                aria-pressed={isSpeaking}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-50 rounded-lg text-gray-400 hover:text-uvci-purple focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-1 focus:opacity-100"
+                                title={isSpeaking ? 'Arrêter la lecture' : 'Lire à haute voix'}
                             >
-                                {isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                                {isSpeaking ? <VolumeX size={14} aria-hidden="true" /> : <Volume2 size={14} aria-hidden="true" />}
                             </button>
                         )}
                     </div>

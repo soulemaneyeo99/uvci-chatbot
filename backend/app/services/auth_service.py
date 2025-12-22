@@ -9,6 +9,8 @@ from app.database import get_db
 from app.models.user import User
 from app.config import settings
 import os
+import secrets
+import hashlib
 
 # Configuration (à déplacer dans .env/config)
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-should-be-long-and-secure")
@@ -61,5 +63,17 @@ class AuthService:
                 detail="Not enough permissions"
             )
         return current_user
+    
+    def generate_reset_token(self) -> str:
+        """Génère un token sécurisé pour la réinitialisation de mot de passe"""
+        return secrets.token_urlsafe(32)
+    
+    def hash_reset_token(self, token: str) -> str:
+        """Hash le token pour le stockage sécurisé"""
+        return hashlib.sha256(token.encode()).hexdigest()
+    
+    def verify_reset_token(self, token: str, hashed_token: str) -> bool:
+        """Vérifie si le token correspond au hash"""
+        return hashlib.sha256(token.encode()).hexdigest() == hashed_token
 
 auth_service = AuthService()

@@ -59,13 +59,25 @@ export default function LoginPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="etudiant@uvci.edu.ci"
+                                    aria-label="Adresse email académique"
+                                    aria-required="true"
+                                    autoComplete="email"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-12 py-3.5 text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-uvci-green/50 focus:border-transparent transition-all"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-purple-100 ml-1">Mot de passe</label>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm font-medium text-purple-100 ml-1">Mot de passe</label>
+                                <Link 
+                                    href="/forgot-password" 
+                                    className="text-xs text-purple-200 hover:text-white hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-uvci-green/50 rounded"
+                                    aria-label="Mot de passe oublié"
+                                >
+                                    Mot de passe oublié ?
+                                </Link>
+                            </div>
                             <div className="relative">
                                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-300" size={20} />
                                 <input
@@ -74,6 +86,9 @@ export default function LoginPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
+                                    aria-label="Mot de passe"
+                                    aria-required="true"
+                                    autoComplete="current-password"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-12 py-3.5 text-white placeholder-purple-300/50 focus:outline-none focus:ring-2 focus:ring-uvci-green/50 focus:border-transparent transition-all"
                                 />
                             </div>
@@ -82,7 +97,9 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={isSubmitting || isLoading}
-                            className="w-full bg-gradient-to-r from-uvci-green to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            aria-label="Se connecter"
+                            aria-busy={isSubmitting || isLoading}
+                            className="w-full bg-gradient-to-r from-uvci-green to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white font-bold py-4 rounded-xl shadow-lg transform transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-uvci-green focus:ring-offset-2 focus:ring-offset-transparent"
                         >
                             {isSubmitting ? (
                                 <Loader2 className="animate-spin" size={20} />

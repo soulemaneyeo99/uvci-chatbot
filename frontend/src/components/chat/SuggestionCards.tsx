@@ -20,9 +20,10 @@ export const SuggestionCards: React.FC<SuggestionCardsProps> = ({ onSelect }) =>
                 <button
                     key={idx}
                     onClick={() => onSelect(sugg.text)}
-                    className="bg-white border border-gray-100 hover:border-uvci-purple p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 text-left group"
+                    aria-label={`Suggestion: ${sugg.text}`}
+                    className="bg-white border border-gray-100 hover:border-uvci-purple p-4 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 text-left group focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-2"
                 >
-                    <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform duration-300 origin-left">
+                    <span className="text-2xl mb-2 block group-hover:scale-110 transition-transform duration-300 origin-left" aria-hidden="true">
                         {sugg.emoji}
                     </span>
                     <span className="text-sm font-medium text-gray-700 leading-tight block">

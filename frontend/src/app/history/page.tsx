@@ -30,15 +30,30 @@ export default function HistoryPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Voulez-vous vraiment supprimer cette conversation ?')) return;
+    // Utiliser une confirmation plus accessible
+    const confirmed = window.confirm('Voulez-vous vraiment supprimer cette conversation ? Cette action est irréversible.');
+    if (!confirmed) return;
 
     try {
       setDeletingId(id);
       await chatAPI.deleteConversation(id);
       setConversations(prev => prev.filter(conv => conv.id !== id));
+      // Notification de succès
+      const notification = document.createElement('div');
+      notification.textContent = 'Conversation supprimée avec succès';
+      notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      notification.setAttribute('role', 'status');
+      notification.setAttribute('aria-live', 'polite');
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
     } catch (error) {
       console.error('Erreur suppression:', error);
-      alert('Erreur lors de la suppression');
+      const errorNotification = document.createElement('div');
+      errorNotification.textContent = 'Erreur lors de la suppression. Veuillez réessayer.';
+      errorNotification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorNotification.setAttribute('role', 'alert');
+      document.body.appendChild(errorNotification);
+      setTimeout(() => errorNotification.remove(), 3000);
     } finally {
       setDeletingId(null);
     }
@@ -89,8 +104,8 @@ export default function HistoryPage() {
           </div>
         ) : conversations.length === 0 ? (
           /* Empty State */
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="text-6xl mb-6">💬</div>
+          <div className="flex flex-col items-center justify-center py-20" role="status" aria-live="polite">
+            <div className="text-6xl mb-6" role="img" aria-label="Aucune conversation">💬</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-3">
               Aucune conversation
             </h2>
@@ -98,8 +113,8 @@ export default function HistoryPage() {
               Vous n'avez pas encore de conversations enregistrées. Commencez à discuter avec l'assistant UVCI !
             </p>
             <Link href="/">
-              <button className="btn btn-primary">
-                <MessageSquare size={18} />
+              <button className="btn btn-primary focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-2">
+                <MessageSquare size={18} aria-hidden="true" />
                 Nouvelle conversation
               </button>
             </Link>
@@ -152,10 +167,11 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Link href={`/?conversation_id=${conv.id}`}>
                         <button
-                          className="btn btn-secondary text-sm"
-                          title="Ouvrir"
+                          className="btn btn-secondary text-sm focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-2"
+                          title="Ouvrir cette conversation"
+                          aria-label={`Ouvrir la conversation: ${conv.title || 'Sans titre'}`}
                         >
-                          <MessageSquare size={16} />
+                          <MessageSquare size={16} aria-hidden="true" />
                           <span className="hidden sm:inline">Ouvrir</span>
                         </button>
                       </Link>
@@ -163,13 +179,17 @@ export default function HistoryPage() {
                       <button
                         onClick={() => handleDelete(conv.id)}
                         disabled={deletingId === conv.id}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        aria-label={`Supprimer la conversation: ${conv.title || 'Sans titre'}`}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
                         title="Supprimer"
                       >
                         {deletingId === conv.id ? (
-                          <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin"></div>
+                          <>
+                            <div className="w-4 h-4 border-2 border-red-600/30 border-t-red-600 rounded-full animate-spin" aria-hidden="true"></div>
+                            <span className="sr-only">Suppression en cours...</span>
+                          </>
                         ) : (
-                          <Trash2 size={18} />
+                          <Trash2 size={18} aria-hidden="true" />
                         )}
                       </button>
                     </div>

@@ -8,7 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60 secondes
+  timeout: 10000, // 10 secondes (réduit pour détecter plus vite les problèmes)
 });
 
 // Interceptor pour ajouter le token
@@ -33,6 +33,18 @@ export const authAPI = {
   },
   me: async () => {
     const response = await api.get('/api/auth/me');
+    return response.data;
+  },
+  forgotPassword: async (email: string) => {
+    const response = await api.post('/api/auth/forgot-password', { email });
+    return response.data;
+  },
+  resetPassword: async (token: string, newPassword: string, confirmPassword: string) => {
+    const response = await api.post('/api/auth/reset-password', {
+      token,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    });
     return response.data;
   },
 };

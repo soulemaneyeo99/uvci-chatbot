@@ -21,24 +21,53 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
       speechService.stopSpeaking();
       setIsSpeaking(false);
     } else {
-      const support = speechService.isSupported();
-      if (!support.synthesis) {
-        alert('La synthèse vocale n\'est pas supportée par votre navigateur');
-        return;
+      try {
+        const support = speechService.isSupported();
+        if (!support.synthesis) {
+          // Utiliser une notification plus accessible qu'alert
+          const notification = document.createElement('div');
+          notification.textContent = 'La synthèse vocale n\'est pas supportée par votre navigateur';
+          notification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+          notification.setAttribute('role', 'alert');
+          document.body.appendChild(notification);
+          setTimeout(() => notification.remove(), 3000);
+          return;
+        }
+        
+        speechService.speak(message.content);
+        setIsSpeaking(true);
+        
+        // Reset après 10 secondes (durée approximative)
+        setTimeout(() => setIsSpeaking(false), 10000);
+      } catch (error) {
+        console.error('Erreur lors de la synthèse vocale:', error);
       }
-      
-      speechService.speak(message.content);
-      setIsSpeaking(true);
-      
-      // Reset après 10 secondes (durée approximative)
-      setTimeout(() => setIsSpeaking(false), 10000);
     }
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(message.content);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (error) {
+      console.error('Erreur lors de la copie:', error);
+      // Fallback pour les navigateurs qui ne supportent pas l'API Clipboard
+      const textArea = document.createElement('textarea');
+      textArea.value = message.content;
+      textArea.style.position = 'fixed';
+      textArea.style.opacity = '0';
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      } catch (err) {
+        console.error('Erreur lors de la copie (fallback):', err);
+      }
+      document.body.removeChild(textArea);
+    }
   };
 
   return (
@@ -91,18 +120,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message }) => {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleSpeak}
-                className="text-gray-500 hover:text-uvci-blue transition-colors p-1"
+                aria-label={isSpeaking ? 'Arrêter la lecture vocale' : 'Lire le message à haute voix'}
+                aria-pressed={isSpeaking}
+                className="text-gray-500 hover:text-uvci-blue transition-colors p-1 focus:outline-none focus:ring-2 focus:ring-uvci-blue focus:ring-offset-1 rounded"
                 title={isSpeaking ? 'Arrêter la lecture' : 'Lire à voix haute'}
               >
-                {isSpeaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                {isSpeaking ? <VolumeX size={14} aria-hidden="true" /> : <Volume2 size={14} aria-hidden="true" />}
               </button>
               
               <button
                 onClick={handleCopy}
-                className="text-gray-500 hover:text-uvci-blue transition-colors p-1"
-                title="Copier"
+                aria-label={isCopied ? 'Copié' : 'Copier le message'}
+                className="text-gray-500 hover:text-uvci-blue transition-colors p-1 focus:outline-none focus:ring-2 focus:ring-uvci-blue focus:ring-offset-1 rounded"
+                title={isCopied ? 'Copié' : 'Copier'}
               >
-                {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+                {isCopied ? (
+                  <>
+                    <Check size={14} className="text-green-500" aria-hidden="true" />
+                    <span className="sr-only">Message copié</span>
+                  </>
+                ) : (
+                  <Copy size={14} aria-hidden="true" />
+                )}
               </button>
             </div>
           )}

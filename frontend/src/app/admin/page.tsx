@@ -65,13 +65,31 @@ export default function AdminPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) return;
+    const doc = documents.find(d => d.id === id);
+    const confirmed = window.confirm(
+      `Êtes-vous sûr de vouloir supprimer le document "${doc?.filename || 'ce document'}" ? Cette action est irréversible.`
+    );
+    if (!confirmed) return;
 
     try {
       await documentsAPI.deleteDocument(id);
       setDocuments(prev => prev.filter(d => d.id !== id));
+      // Notification de succès
+      const notification = document.createElement('div');
+      notification.textContent = 'Document supprimé avec succès';
+      notification.className = 'fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      notification.setAttribute('role', 'status');
+      notification.setAttribute('aria-live', 'polite');
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
     } catch (error) {
-      alert('Erreur lors de la suppression');
+      console.error('Erreur suppression:', error);
+      const errorNotification = document.createElement('div');
+      errorNotification.textContent = 'Erreur lors de la suppression. Veuillez réessayer.';
+      errorNotification.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+      errorNotification.setAttribute('role', 'alert');
+      document.body.appendChild(errorNotification);
+      setTimeout(() => errorNotification.remove(), 3000);
     }
   };
 
@@ -116,29 +134,37 @@ export default function AdminPage() {
           <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-none">
             <button
               onClick={() => setActiveTab('overview')}
-              className={`px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'overview'
+              role="tab"
+              aria-selected={activeTab === 'overview'}
+              aria-controls="overview-panel"
+              id="overview-tab"
+              className={`px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-2 ${activeTab === 'overview'
                   ? 'bg-uvci-purple text-white shadow-lg shadow-purple-200'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
                 }`}
             >
-              <BarChart3 size={18} />
+              <BarChart3 size={18} aria-hidden="true" />
               Vue d'ensemble
             </button>
             <button
               onClick={() => setActiveTab('documents')}
-              className={`px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2 ${activeTab === 'documents'
+              role="tab"
+              aria-selected={activeTab === 'documents'}
+              aria-controls="documents-panel"
+              id="documents-tab"
+              className={`px-4 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-uvci-purple focus:ring-offset-2 ${activeTab === 'documents'
                   ? 'bg-uvci-purple text-white shadow-lg shadow-purple-200'
                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
                 }`}
             >
-              <FileText size={18} />
+              <FileText size={18} aria-hidden="true" />
               Documents
             </button>
           </div>
 
           {/* Tab Content */}
           {activeTab === 'overview' && (
-            <div className="animate-fade-in">
+            <div className="animate-fade-in" role="tabpanel" id="overview-panel" aria-labelledby="overview-tab">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 {stats.map((stat, idx) => (
                   <div key={idx} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -156,7 +182,7 @@ export default function AdminPage() {
           )}
 
           {activeTab === 'documents' && (
-            <div className="animate-fade-in space-y-6">
+            <div className="animate-fade-in space-y-6" role="tabpanel" id="documents-panel" aria-labelledby="documents-tab">
               {/* Upload Section */}
               <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
                 <div className="flex items-center gap-3 mb-6">
@@ -175,8 +201,11 @@ export default function AdminPage() {
                     accept=".pdf"
                     onChange={handleFileUpload}
                     disabled={isUploading}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                    aria-label="Téléverser un document PDF"
+                    aria-describedby="upload-help"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
                   />
+                  <span id="upload-help" className="sr-only">Sélectionnez un fichier PDF à téléverser et indexer</span>
                   <div className="flex flex-col items-center">
                     {isUploading ? (
                       <Loader2 className="animate-spin text-uvci-purple mb-4" size={48} />
@@ -242,10 +271,11 @@ export default function AdminPage() {
 
                         <button
                           onClick={() => handleDelete(doc.id)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                          aria-label={`Supprimer le document: ${doc.filename}`}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 focus:opacity-100"
                           title="Supprimer"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 size={18} aria-hidden="true" />
                         </button>
                       </div>
                     ))}
