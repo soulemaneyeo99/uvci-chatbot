@@ -29,8 +29,9 @@ app.include_router(chat.router)
 app.include_router(history.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
-from app.api import settings as settings_router
+from app.api import settings as settings_router, dashboard
 app.include_router(settings_router.router)
+app.include_router(dashboard.router)
 # app.include_router(documents.router)  # Désactivé
 
 # Route racine
