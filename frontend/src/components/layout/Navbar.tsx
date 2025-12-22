@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     Menu, X, LogIn, UserPlus,
-    Settings, LogOut, User as UserIcon,
-    GraduationCap
+    GraduationCap,
+    LayoutDashboard
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -48,6 +48,10 @@ export default function Navbar() {
                                 {/* Dropdown */}
                                 {isProfileOpen && (
                                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 animate-in fade-in slide-in-from-top-2">
+                                        <Link href="/dashboard" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                                            <LayoutDashboard size={16} />
+                                            Vision 360
+                                        </Link>
                                         <Link href="/settings" className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
                                             <Settings size={16} />
                                             Paramètres
@@ -113,6 +117,10 @@ export default function Navbar() {
                                     <p className="text-xs text-gray-500">{user.email}</p>
                                 </div>
                             </div>
+                            <Link href="/dashboard" className="flex items-center gap-3 px-4 py-3 text-gray-700 bg-gray-50 rounded-xl">
+                                <LayoutDashboard size={20} />
+                                Vision 360 (Dashboard)
+                            </Link>
                             <Link href="/settings" className="flex items-center gap-3 px-4 py-3 text-gray-700 bg-gray-50 rounded-xl">
                                 <Settings size={20} />
                                 Paramètres & Moodle

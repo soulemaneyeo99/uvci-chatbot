@@ -14,7 +14,7 @@ interface User {
 interface AuthContextType {
     user: User | null;
     isLoading: boolean;
-    login: (credentials: any) => Promise<void>;
+    login: (credentials: any, redirectPath?: string) => Promise<void>;
     register: (userData: any) => Promise<void>;
     logout: () => void;
     isAuthenticated: boolean;
@@ -46,13 +46,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
     };
 
-    const login = async (credentials: any) => {
+    const login = async (credentials: any, redirectPath?: string) => {
         const { access_token, user } = await authAPI.login(credentials);
         localStorage.setItem('token', access_token);
         setUser(user);
 
-        // Redirection basée sur le rôle
-        if (user.role === 'admin') {
+        // Redirection basée sur le paramètre ou le rôle
+        if (redirectPath) {
+            router.push(redirectPath);
+        } else if (user.role === 'admin') {
             router.push('/admin');
         } else {
             router.push('/');

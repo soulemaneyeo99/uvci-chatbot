@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
 import { GraduationCap, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -11,13 +12,15 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const { login, isLoading } = useAuth();
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect') || undefined;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setIsSubmitting(true);
         try {
-            await login({ email, password });
+            await login({ email, password }, redirect);
         } catch (err: any) {
             setError('Email ou mot de passe incorrect.');
             setIsSubmitting(false);
@@ -70,8 +73,8 @@ export default function LoginPage() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <label className="text-sm font-medium text-purple-100 ml-1">Mot de passe</label>
-                                <Link 
-                                    href="/forgot-password" 
+                                <Link
+                                    href="/forgot-password"
                                     className="text-xs text-purple-200 hover:text-white hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-uvci-green/50 rounded"
                                     aria-label="Mot de passe oublié"
                                 >

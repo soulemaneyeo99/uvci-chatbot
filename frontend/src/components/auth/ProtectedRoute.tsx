@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
@@ -12,16 +12,17 @@ interface ProtectedRouteProps {
 export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
     const { user, isLoading, isAuthenticated } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     useEffect(() => {
         if (!isLoading) {
             if (!isAuthenticated) {
-                router.push('/login');
+                router.push(`/login?redirect=${encodeURIComponent(pathname)}`);
             } else if (requireAdmin && user?.role !== 'admin') {
                 router.push('/'); // Redirect non-admins to home
             }
         }
-    }, [user, isLoading, isAuthenticated, requireAdmin, router]);
+    }, [user, isLoading, isAuthenticated, requireAdmin, router, pathname]);
 
     if (isLoading) {
         return (
