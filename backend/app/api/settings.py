@@ -60,3 +60,29 @@ async def delete_uvci_credentials(
     db.commit()
     
     return {"message": "Déconnexion UVCI effectuée"}
+
+@router.post("/sync")
+async def sync_moodle(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """Déclenche une synchronisation manuelle avec Moodle"""
+    if not current_user.uvci_username or not current_user.uvci_password_encrypted:
+        raise HTTPException(status_code=400, detail="Compte UVCI non configuré.")
+    
+    try:
+        # Déchiffrer
+        plain_password = decrypt(current_user.uvci_password_encrypted)
+        
+        # Scraper
+        assignments = await moodle_service.get_assignments(
+            current_user.uvci_username,
+            plain_password
+        )
+        
+        return {
+            "status": "success",
+            "count": len(assignments),
+            "assignments": assignments
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la synchronisation : {str(e)}")

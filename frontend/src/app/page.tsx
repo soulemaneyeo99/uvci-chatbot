@@ -5,8 +5,10 @@ import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { SuggestionCards } from '@/components/chat/SuggestionCards';
 import { Message } from '@/types';
-import { chatAPI } from '@/lib/api';
+import { chatAPI, settingsAPI } from '@/lib/api';
 import { speechService } from '@/lib/speech';
+import { useAuth } from '@/contexts/AuthContext';
+import { Loader2, RefreshCw, Calendar, CheckCircle2 } from 'lucide-react';
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -17,6 +19,8 @@ export default function Home() {
   const [audioSupport, setAudioSupport] = useState({ recognition: false, synthesis: false });
   const [streamingContent, setStreamingContent] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -134,8 +138,56 @@ export default function Home() {
     }
   };
 
+  const handleSyncMoodle = async () => {
+    if (isSyncing || !isAuthenticated) return;
+
+    setIsSyncing(true);
+    setError(null);
+
+    try {
+      const data = await settingsAPI.syncMoodle();
+
+      const syncMessage: Message = {
+        id: `sync-${Date.now()}`,
+        role: 'assistant',
+        content: `🔄 **Synchronisation Moodle terminée**\n\nJ'ai trouvé **${data.count}** événement(s) à venir sur votre plateforme UVCI.\n\n${data.assignments.map((a: any) => `- **${a.title}**\n  📅 ${a.due_date}`).join('\n\n')}\n\n*Je vous enverrai un email dès qu'une nouvelle activité sera détectée !*`,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, syncMessage]);
+    } catch (err: any) {
+      setError(err?.response?.data?.detail || "Échec de la synchronisation Moodle.");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden relative">
+      {/* Sync Button UI - Floating Premium */}
+      {isAuthenticated && (
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={handleSyncMoodle}
+            disabled={isSyncing}
+            className={`
+              flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all duration-300
+              ${isSyncing
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none'
+                : 'bg-white text-uvci-purple hover:bg-uvci-purple hover:text-white border border-uvci-purple/20'
+              }
+            `}
+          >
+            {isSyncing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            <span className="text-sm font-semibold">Sync Moodle</span>
+          </button>
+        </div>
+      )}
+
       <main className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto" role="main" aria-live="polite" aria-atomic="false">
         {error && (
           <div className="mx-4 mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm" role="alert">

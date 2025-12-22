@@ -214,6 +214,11 @@ export const settingsAPI = {
 
   disconnectUVCI: async () => {
     await api.delete('/api/settings/uvci');
+  },
+
+  syncMoodle: async () => {
+    const response = await api.post('/api/settings/sync');
+    return response.data;
   }
 };
 
