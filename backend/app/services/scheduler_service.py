@@ -31,15 +31,24 @@ class SchedulerService:
                 if not user.uvci_password_encrypted:
                     continue
                     
+                from app.utils.crypto import decrypt
+                
+                # Déchiffrer le mot de passe pour le scraper
+                try:
+                    plain_password = decrypt(user.uvci_password_encrypted)
+                except Exception:
+                    logger.error(f"❌ Échec déchiffrement MDP pour {user.email}")
+                    continue
+
                 assignments = await moodle_service.get_assignments(
                     user.uvci_username, 
-                    user.uvci_password_encrypted
+                    plain_password
                 )
                 
                 if assignments:
                     logger.info(f"🚨 NOUVEAU DEVOIR pour {user.full_name or user.email} !")
                     for assign in assignments:
-                        logger.info(f"   📝 {assign['course']} : {assign['title']} (Pour le {assign['due_date']})")
+                        logger.info(f"   📝 {assign['title']} (Pour le {assign['due_date']})")
                         
                     # Envoyer Notification Email
                     from app.services.email_service import email_service
