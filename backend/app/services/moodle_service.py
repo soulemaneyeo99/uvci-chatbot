@@ -87,28 +87,54 @@ class MoodleService:
                 
                 for event in events:
                     title_elem = event.find('h3', class_='name')
+                    
+                    # Tentative 1: Selecteur standard .date
                     date_elem = event.find('div', class_='date')
                     
+                    # Tentative 2: Si échec, chercher dans les colonnes Bootstrap (souvent col-11 contient le texte)
+                    if not date_elem:
+                        # Chercher tous les divs qui pourraient contenir le texte
+                        rows = event.find_all('div', class_='row')
+                        for row in rows:
+                            # Souvent la date est juste du texte dans une row
+                            text = row.get_text(strip=True)
+                            # Heuristique simple : contient un chiffre et ":" (heure)
+                            if any(c.isdigit() for c in text) and ":" in text:
+                                date_text = text
+                                break
+                        else:
+                            date_text = "Date inconnue (Format non reconnu)"
+                            # DEBUG: Afficher le HTML pour comprendre la structure
+                            logger.warning(f"⚠️ Date introuvable pour '{title_elem.get_text(strip=True)}'. HTML: {event.prettify()[:200]}...")
+                    else:
+                        date_text = date_elem.get_text(strip=True)
+
                     if title_elem:
                         title = title_elem.get_text(strip=True)
-                        # Ignorer les événements passés ou non-devoirs si besoin
                         
                         assignments.append({
                             "title": title,
-                            "course": "Moodle Event", # Difficile à extraire sans plus de détails
-                            "due_date": date_elem.get_text(strip=True) if date_elem else "Bientôt",
+                            "course": "Moodle Event",
+                            "due_date": date_text,
                             "link": title_elem.find('a')['href'] if title_elem.find('a') else "#"
                         })
                 
-                # Fallback: Si pas de classe 'event', chercher les cartes standard 'card'
+                # Fallback: Si pas de classe 'event', chercher les cartes standard 'card' (Moodle 4.0+)
                 if not assignments:
                     cards = soup.find_all('div', class_='card')
                     for card in cards:
+                        # Chercher une date dans la carte
+                        date_possible = card.find('div', class_='text-muted') # Souvent la date est en gris
+                        if date_possible:
+                            date_text = date_possible.get_text(strip=True)
+                        else:
+                            date_text = "Date non trouvée"
+
                         if "se termine" in card.get_text() or "s'ouvre" in card.get_text():
                              assignments.append({
                                 "title": card.find('h3').get_text(strip=True) if card.find('h3') else "Activité",
                                 "course": "UVCI",
-                                "due_date": "Voir détails",
+                                "due_date": date_text,
                                 "link": "#"
                             })
 
