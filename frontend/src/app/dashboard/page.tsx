@@ -14,7 +14,8 @@ import {
     GraduationCap,
     ArrowRight,
     ClipboardList,
-    Sparkles
+    Sparkles,
+    Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
@@ -52,6 +53,17 @@ export default function DashboardPage() {
             setLoading(false);
         }
     };
+
+    if (loading) {
+        return (
+            <ProtectedRoute>
+                <div className="min-h-screen bg-gray-50/50 flex flex-col items-center justify-center p-4">
+                    <Loader2 className="w-12 h-12 text-uvci-purple animate-spin mb-4" />
+                    <p className="text-gray-500 font-medium animate-pulse">Chargement de votre cockpit Vision 360...</p>
+                </div>
+            </ProtectedRoute>
+        );
+    }
 
     return (
         <ProtectedRoute>
@@ -151,7 +163,7 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* Widget 3: Devoirs à venir (NOUVEAU) */}
+                        {/* Widget 3: Devoirs à venir */}
                         <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-6">
                                 <h3 className="text-lg font-bold flex items-center gap-2">
