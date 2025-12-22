@@ -22,6 +22,7 @@ email-validator>=2.1.0
 # RAG & Embeddings
 chromadb>=0.4.22
 pypdf>=4.0.0
+pdfplumber>=0.10.0
 # HTTP Client (Async)
 httpx>=0.27.0
 cryptography>=42.0.0
