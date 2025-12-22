@@ -222,4 +222,19 @@ export const settingsAPI = {
   }
 };
 
+export const dashboardAPI = {
+  getStats: async () => {
+    const response = await api.get('/api/dashboard/stats');
+    return response.data;
+  },
+  getAnnouncements: async () => {
+    const response = await api.get('/api/dashboard/announcements');
+    return response.data;
+  },
+  getCalendar: async () => {
+    const response = await api.get('/api/dashboard/calendar');
+    return response.data;
+  }
+};
+
 export default api;
