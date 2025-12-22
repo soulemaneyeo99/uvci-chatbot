@@ -32,6 +32,14 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP: int = 200
     TOP_K_RESULTS: int = 3
     
+    # SMTP Settings
+    SMTP_ENABLED: bool = False
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@uvci.edu.ci"
+    
     @property
     def allowed_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
