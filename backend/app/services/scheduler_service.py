@@ -13,8 +13,8 @@ class SchedulerService:
         
     def start(self):
         """Démarrer le planificateur"""
-        # Ajouter le job périodique (2 minutes pour le test local)
-        self.scheduler.add_job(self.check_all_homeworks, 'interval', minutes=2)
+        # Ajouter le job périodique (5 heures pour la production)
+        self.scheduler.add_job(self.check_all_homeworks, 'interval', minutes=300)
         self.scheduler.start()
         logger.info("⏰ Scheduler démarré (Vérification devoirs active)")
 

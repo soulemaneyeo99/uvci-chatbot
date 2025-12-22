@@ -99,7 +99,10 @@ class EmailService:
                     {assignment_items_html}
                     
                     <div style="text-align: center; margin-top: 30px;">
-                        <a href="{self.from_email.replace('noreply', 'dashboard') if 'localhost' in self.from_email else 'https://uvci-chatbot.vercel.app/dashboard'}" style="background-color: #4c1d95; color: #ffffff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">Ouvrir Vision 360</a>
+                        <a href="https://licences5.uvci.online/my/" style="background-color: #4c1d95; color: #ffffff; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block; box-shadow: 0 10px 15px -3px rgba(76, 29, 149, 0.3);">Accéder à Moodle</a>
+                    </div>
+                    <div style="text-align: center; margin-top: 15px;">
+                        <p style="font-size: 12px; color: #6b7280;">Ou consultez votre <a href="https://uvci-chatbot.vercel.app/dashboard" style="color: #4c1d95; text-decoration: underline;">Cockpit Vision 360</a></p>
                     </div>
                 </div>
                 <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
