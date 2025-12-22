@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import {
     Menu, X, LogIn, UserPlus,
+    Settings, LogOut, User as UserIcon,
     GraduationCap,
     LayoutDashboard
 } from 'lucide-react';
