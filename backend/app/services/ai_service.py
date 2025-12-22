@@ -42,10 +42,17 @@ class GeminiService:
         try:
             # NOUVEAU : Prioriser les modèles effectivment disponibles (selon les logs)
             model_candidates = [
-                'gemini-2.5-flash',      # Présent dans vos logs
-                'gemini-flash-latest',   # Présent dans vos logs
-                'gemini-2.0-flash-exp',  # Présent dans vos logs
-                'gemini-1.5-flash',      # Fallback classique
+                'gemini-2.5-flash',
+                'gemini-2.0-flash',
+                'gemini-2.0-flash-exp',
+                'gemini-flash-latest',
+                'gemini-1.5-flash',
+                'gemini-1.5-flash-8b',
+                'gemini-1.5-flash-001',
+                'gemini-1.5-flash-002',
+                'gemini-1.5-pro',
+                'gemini-1.5-pro-001',
+                'gemini-1.5-pro-002',
                 'gemini-pro'
             ]
             
