@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   themeColor: '#8B1874',
 }
 
+import Navbar from '@/components/layout/Navbar';
+
 export default function RootLayout({
   children,
 }: {
@@ -22,6 +24,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <AuthProvider>
+          <Navbar />
           {children}
         </AuthProvider>
       </body>

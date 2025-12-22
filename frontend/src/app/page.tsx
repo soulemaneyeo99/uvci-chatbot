@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { ChatHeader } from '@/components/chat/ChatHeader';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { ChatBubble } from '@/components/chat/ChatBubble';
 import { SuggestionCards } from '@/components/chat/SuggestionCards';
@@ -137,90 +135,88 @@ export default function Home() {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden">
-        <ChatHeader />
 
-        <main className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto" role="main" aria-live="polite" aria-atomic="false">
-          {error && (
-            <div className="mx-4 mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm" role="alert">
-              <div className="flex items-start gap-3">
-                <span className="text-red-500 text-xl" aria-hidden="true">⚠️</span>
-                <div className="flex-1">
-                  <p className="text-red-800 font-medium text-sm">{error}</p>
-                  <button
-                    onClick={() => setError(null)}
-                    className="mt-2 text-red-600 hover:text-red-800 text-xs underline focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
-                    aria-label="Fermer le message d'erreur"
-                  >
-                    Fermer
-                  </button>
-                </div>
+  return (
+    <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden">
+      <main className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto" role="main" aria-live="polite" aria-atomic="false">
+        {error && (
+          <div className="mx-4 mt-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-sm" role="alert">
+            <div className="flex items-start gap-3">
+              <span className="text-red-500 text-xl" aria-hidden="true">⚠️</span>
+              <div className="flex-1">
+                <p className="text-red-800 font-medium text-sm">{error}</p>
+                <button
+                  onClick={() => setError(null)}
+                  className="mt-2 text-red-600 hover:text-red-800 text-xs underline focus:outline-none focus:ring-2 focus:ring-red-400 rounded"
+                  aria-label="Fermer le message d'erreur"
+                >
+                  Fermer
+                </button>
               </div>
             </div>
-          )}
-          {messages.length === 0 && !streamingContent ? (
-            <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-8 px-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-uvci-green to-emerald-500 rounded-3xl flex items-center justify-center shadow-lg shadow-green-500/20 mb-6 animate-bounce-slow" aria-hidden="true">
-                <span className="text-4xl" role="img" aria-label="Salutation">👋</span>
-              </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
-                Comment puis-je vous aider ?
-              </h2>
-              <p className="text-gray-500 text-center max-w-md px-6 mb-8">
-                Je suis l'<span className="font-bold text-uvci-purple">Assistant UVCI</span>. Posez-moi vos questions sur les cours, les inscriptions ou la vie universitaire.
-              </p>
-
-              <SuggestionCards onSelect={handleSendMessage} />
+          </div>
+        )}
+        {messages.length === 0 && !streamingContent ? (
+          <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] py-8 px-4">
+            <div className="w-20 h-20 bg-gradient-to-br from-uvci-green to-emerald-500 rounded-3xl flex items-center justify-center shadow-lg shadow-green-500/20 mb-6 animate-bounce-slow" aria-hidden="true">
+              <span className="text-4xl" role="img" aria-label="Salutation">👋</span>
             </div>
-          ) : (
-            <div className="py-6 px-4 pb-20" role="log" aria-label="Conversation">
-              {messages.map((msg) => (
-                <ChatBubble
-                  key={msg.id}
-                  message={msg}
-                  isSpeaking={isSpeaking}
-                  onSpeak={handleSpeak}
-                />
-              ))}
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+              Comment puis-je vous aider ?
+            </h2>
+            <p className="text-gray-500 text-center max-w-md px-6 mb-8">
+              Je suis l'<span className="font-bold text-uvci-purple">Assistant UVCI</span>. Posez-moi vos questions sur les cours, les inscriptions ou la vie universitaire.
+            </p>
 
-              {streamingContent && (
-                <ChatBubble
-                  message={{
-                    id: 'streaming',
-                    role: 'assistant',
-                    content: streamingContent,
-                    timestamp: new Date()
-                  }}
-                  isSpeaking={false}
-                  onSpeak={() => { }}
-                />
-              )}
+            <SuggestionCards onSelect={handleSendMessage} />
+          </div>
+        ) : (
+          <div className="py-6 px-4 pb-20" role="log" aria-label="Conversation">
+            {messages.map((msg) => (
+              <ChatBubble
+                key={msg.id}
+                message={msg}
+                isSpeaking={isSpeaking}
+                onSpeak={handleSpeak}
+              />
+            ))}
 
-              {isLoading && !streamingContent && (
-                <div className="flex justify-start px-1 mb-6" role="status" aria-live="polite">
-                  <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
-                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }} aria-hidden="true"></div>
-                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '150ms' }} aria-hidden="true"></div>
-                    <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }} aria-hidden="true"></div>
-                    <span className="sr-only">L'assistant est en train de réfléchir...</span>
-                  </div>
+            {streamingContent && (
+              <ChatBubble
+                message={{
+                  id: 'streaming',
+                  role: 'assistant',
+                  content: streamingContent,
+                  timestamp: new Date()
+                }}
+                isSpeaking={false}
+                onSpeak={() => { }}
+              />
+            )}
+
+            {isLoading && !streamingContent && (
+              <div className="flex justify-start px-1 mb-6" role="status" aria-live="polite">
+                <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-2">
+                  <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '0ms' }} aria-hidden="true"></div>
+                  <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '150ms' }} aria-hidden="true"></div>
+                  <div className="w-2 h-2 bg-uvci-purple rounded-full animate-bounce" style={{ animationDelay: '300ms' }} aria-hidden="true"></div>
+                  <span className="sr-only">L'assistant est en train de réfléchir...</span>
                 </div>
-              )}
+              </div>
+            )}
 
-              <div ref={messagesEndRef} className="h-4" />
-            </div>
-          )}
-        </main>
+            <div ref={messagesEndRef} className="h-4" />
+          </div>
+        )}
+      </main>
 
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-          isRecording={isRecording}
-          onToggleRecording={handleToggleRecording}
-          recordSupported={audioSupport.recognition}
-        />
-      </div>
-    </ProtectedRoute>
+      <ChatInput
+        onSendMessage={handleSendMessage}
+        isLoading={isLoading}
+        isRecording={isRecording}
+        onToggleRecording={handleToggleRecording}
+        recordSupported={audioSupport.recognition}
+      />
+    </div>
   );
 }
