@@ -135,8 +135,6 @@ export default function Home() {
   };
 
   return (
-
-  return (
     <div className="flex flex-col h-screen bg-gray-50/50 overflow-hidden">
       <main className="flex-1 overflow-y-auto w-full max-w-4xl mx-auto" role="main" aria-live="polite" aria-atomic="false">
         {error && (
