@@ -99,7 +99,7 @@ class EmailService:
                     {assignment_items_html}
                     
                     <div style="text-align: center; margin-top: 30px;">
-                        <a href="http://localhost:3000/dashboard" style="background-color: #4c1d95; color: #ffffff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">Ouvrir Vision 360</a>
+                        <a href="{self.from_email.replace('noreply', 'dashboard') if 'localhost' in self.from_email else 'https://uvci-chatbot.vercel.app/dashboard'}" style="background-color: #4c1d95; color: #ffffff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">Ouvrir Vision 360</a>
                     </div>
                 </div>
                 <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
@@ -127,7 +127,7 @@ class EmailService:
             from email.mime.multipart import MIMEMultipart
             
             msg = MIMEMultipart('alternative')
-            msg['From'] = self.from_email
+            msg['From'] = f"Assistant UVCI <{self.from_email}>"
             msg['To'] = to_email
             msg['Subject'] = subject
             
