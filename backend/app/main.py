@@ -29,6 +29,8 @@ app.include_router(chat.router)
 app.include_router(history.router)
 app.include_router(auth.router)
 app.include_router(admin.router)
+from app.api import settings as settings_router
+app.include_router(settings_router.router)
 # app.include_router(documents.router)  # Désactivé
 
 # Route racine
@@ -53,3 +55,11 @@ async def health_check():
         "gemini_configured": bool(settings.GOOGLE_API_KEY),
         "database": "connected"
     }
+
+# Démarrage du Scheduler
+from app.services.scheduler_service import scheduler_service
+
+@app.on_event("startup")
+async def startup_event():
+    scheduler_service.start()
+

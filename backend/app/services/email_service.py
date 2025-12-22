@@ -102,5 +102,44 @@ L'équipe UVCI
             logger.error(f"❌ Erreur lors de l'envoi de l'email: {e}")
             return False
 
+    async def send_assignment_notification(self, email: str, assignments: list) -> bool:
+        """Envoie une notification de nouveaux devoirs"""
+        subject = f"📚 {len(assignments)} Nouveaux Devoirs détectés - UVCI"
+        
+        assignments_list = ""
+        for assign in assignments:
+            assignments_list += f"- {assign['course']} : {assign['title']} (Pour le {assign['due_date']})\n"
+            assignments_list += f"  Lien : {assign.get('link', '#')}\n\n"
+            
+        body = f"""
+Bonjour,
+
+Votre assistant UVCI a détecté de nouveaux devoirs sur la plateforme :
+
+{assignments_list}
+
+Ne les oubliez pas !
+
+Cordialement,
+Votre Assistant Personnel
+        """.strip()
+
+        if self.smtp_enabled:
+            return await self._send_smtp_email(email, subject, body)
+        else:
+            # Mode DEV : Logger
+            separator = "=" * 70
+            message = f"\n{separator}\n"
+            message += f"📧 EMAIL NOTIFICATION DEVOIRS (Mode Développement)\n"
+            message += f"{separator}\n"
+            message += f"À: {email}\n"
+            message += f"Sujet: {subject}\n"
+            message += f"Contenu:\n{body}\n"
+            message += f"{separator}\n"
+            
+            logger.info(f"📧 [DEV MODE] Email sent to {email}: {len(assignments)} assignments")
+            print(message, flush=True)
+            return True
+
 email_service = EmailService()
 

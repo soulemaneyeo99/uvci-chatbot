@@ -201,4 +201,20 @@ export const documentsAPI = {
   },
 };
 
+export const settingsAPI = {
+  getUVCIStatus: async (): Promise<{ is_connected: boolean; username: string | null; message: string }> => {
+    const response = await api.get('/api/settings/uvci');
+    return response.data;
+  },
+
+  updateUVCICredentials: async (credentials: any) => {
+    const response = await api.post('/api/settings/uvci', credentials);
+    return response.data;
+  },
+
+  disconnectUVCI: async () => {
+    await api.delete('/api/settings/uvci');
+  }
+};
+
 export default api;

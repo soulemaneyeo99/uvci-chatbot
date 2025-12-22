@@ -90,6 +90,21 @@ async def forgot_password(
             email=user.email,
             reset_token=reset_token  # Envoyer le token non hashé
         )
+        # Pour le test local, on affiche le lien dans la console
+        reset_link = f"http://localhost:3000/reset-password?token={reset_token}"
+        print("="*50)
+        print(f"📧 EMAIL SIMULÉ (Password Reset)")
+        print(f"Pour: {user.email}")
+        print(f"Lien: {reset_link}")
+        print(f"Lien: {reset_link}")
+        print("="*50)
+        
+        # Écrire dans un fichier pour que l'agent puisse le lire
+        try:
+            with open("reset_link.txt", "w") as f:
+                f.write(reset_link)
+        except Exception as e:
+            print(f"Erreur écriture fichier: {e}")
     
     # Toujours retourner un succès pour ne pas révéler si l'email existe
     return {

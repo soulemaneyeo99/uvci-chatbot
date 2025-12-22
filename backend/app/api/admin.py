@@ -44,9 +44,16 @@ async def upload_document(
         }
         
     except Exception as e:
+        error_msg = f"Erreur upload: {str(e)}"
+        # Log to file for debugging
+        with open("upload_debug.log", "a") as log_file:
+            log_file.write(f"FAILED: {error_msg}\n")
+            import traceback
+            traceback.print_exc(file=log_file)
+            
         if os.path.exists(file_path):
             os.remove(file_path)
-        raise HTTPException(500, f"Erreur upload: {str(e)}")
+        raise HTTPException(500, error_msg)
 
 @router.get("/documents")
 async def list_documents(current_admin: User = Depends(auth_service.get_current_admin)):

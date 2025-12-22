@@ -18,3 +18,7 @@ services:
         value: gemini-2.5-flash
       - key: ANONYMIZED_TELEMETRY
         value: False
+      - key: ENCRYPTION_KEY
+        sync: false
+      - key: SECRET_KEY
+        sync: false

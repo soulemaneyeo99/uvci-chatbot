@@ -16,3 +16,7 @@ class User(Base):
     # Password reset fields
     reset_token = Column(String, nullable=True, index=True)
     reset_token_expires = Column(DateTime(timezone=True), nullable=True)
+    
+    # UVCI Credentials (Encrypted)
+    uvci_username = Column(String, nullable=True)
+    uvci_password_encrypted = Column(String, nullable=True)
