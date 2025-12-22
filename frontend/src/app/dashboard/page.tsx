@@ -35,20 +35,34 @@ export default function DashboardPage() {
     }, [isAuthenticated]);
 
     const loadData = async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            const [s, a, c, as] = await Promise.all([
-                dashboardAPI.getStats(),
-                dashboardAPI.getAnnouncements(),
-                dashboardAPI.getCalendar(),
-                dashboardAPI.getAssignments()
-            ]);
-            setStats(s);
-            setAnnouncements(a);
-            setEvents(c);
-            setAssignments(as);
+            // Stats
+            try {
+                const s = await dashboardAPI.getStats();
+                setStats(s);
+            } catch (e) { console.error("Stats fail", e); }
+
+            // Announcements
+            try {
+                const a = await dashboardAPI.getAnnouncements();
+                setAnnouncements(a);
+            } catch (e) { console.error("Announcements fail", e); }
+
+            // Calendar
+            try {
+                const c = await dashboardAPI.getCalendar();
+                setEvents(c);
+            } catch (e) { console.error("Calendar fail", e); }
+
+            // Assignments
+            try {
+                const as = await dashboardAPI.getAssignments();
+                setAssignments(as);
+            } catch (e) { console.error("Assignments fail", e); }
+
         } catch (error) {
-            console.error("Erreur dashboard:", error);
+            console.error("Erreur dashboard globale:", error);
         } finally {
             setLoading(false);
         }

@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (user.role === 'admin') {
             router.push('/admin');
         } else {
-            router.push('/');
+            router.push('/dashboard');
         }
     };
 

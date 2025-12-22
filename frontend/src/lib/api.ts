@@ -234,6 +234,10 @@ export const dashboardAPI = {
   getCalendar: async () => {
     const response = await api.get('/api/dashboard/calendar');
     return response.data;
+  },
+  getAssignments: async () => {
+    const response = await api.get('/api/dashboard/assignments');
+    return response.data;
   }
 };
 
