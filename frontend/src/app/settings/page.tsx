@@ -113,22 +113,47 @@ export default function SettingsPage() {
                                     <Loader2 className="animate-spin text-gray-300" size={24} />
                                 </div>
                             ) : status?.is_connected ? (
-                                <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className="bg-green-100 p-2 rounded-lg text-green-600">
-                                            <ShieldCheck size={24} />
+                                <div className="space-y-4">
+                                    <div className="bg-green-50 border border-green-100 rounded-xl p-4 flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="bg-green-100 p-2 rounded-lg text-green-600">
+                                                <ShieldCheck size={24} />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-green-900">Compte Connecté</h3>
+                                                <p className="text-sm text-green-700">Utilisateur : {status.username}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="font-bold text-green-900">Compte Connecté</h3>
-                                            <p className="text-sm text-green-700">Utilisateur : {status.username}</p>
-                                        </div>
+                                        <button
+                                            onClick={handleDisconnect}
+                                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Déconnecter"
+                                        >
+                                            <LogOut size={20} />
+                                        </button>
                                     </div>
+
+                                    {/* Bouton de Sync Manuelle */}
                                     <button
-                                        onClick={handleDisconnect}
-                                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                                        title="Déconnecter"
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            try {
+                                                const res = await settingsAPI.syncMoodle();
+                                                setFeedback({
+                                                    type: 'success',
+                                                    message: `Synchronisation réussie ! ${res.count} devoirs trouvés.`
+                                                });
+                                            } catch (e) {
+                                                setFeedback({ type: 'error', message: "Erreur de synchro Moodle." });
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }}
+                                        disabled={isSaving}
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-white border-2 border-uvci-purple text-uvci-purple font-bold rounded-xl hover:bg-purple-50 transition-all disabled:opacity-50"
                                     >
-                                        <LogOut size={20} />
+                                        <School size={18} />
+                                        {isSaving ? "Synchronisation..." : "Synchroniser maintenant"}
                                     </button>
                                 </div>
                             ) : (
