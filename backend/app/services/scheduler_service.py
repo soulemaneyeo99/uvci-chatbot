@@ -13,10 +13,18 @@ class SchedulerService:
         
     def start(self):
         """Démarrer le planificateur"""
+        from datetime import datetime
         # Ajouter le job périodique (5 heures pour la production)
-        self.scheduler.add_job(self.check_all_homeworks, 'interval', minutes=300)
+        # next_run_time=datetime.now() force une exécution immédiate au démarrage/réveil
+        self.scheduler.add_job(
+            self.check_all_homeworks, 
+            'interval', 
+            minutes=300, 
+            next_run_time=datetime.now(),
+            misfire_grace_time=3600
+        )
         self.scheduler.start()
-        logger.info("⏰ Scheduler démarré (Vérification devoirs active)")
+        logger.info("⏰ Scheduler démarré (Check immédiat + Intervalle 5h)")
 
     async def check_all_homeworks(self):
         """Vérifie les devoirs pour tous les utilisateurs connectés"""
