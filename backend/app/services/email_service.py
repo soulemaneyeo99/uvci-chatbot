@@ -141,7 +141,7 @@ class EmailService:
                             "Content-Type": "application/json",
                         },
                         json={
-                            "from": f"Assistant UVCI <onboarding@resend.dev>" if ".dev" in self.resend_api_key else f"Assistant UVCI <{self.from_email}>",
+                            "from": "Assistant UVCI <onboarding@resend.dev>",
                             "to": [to_email],
                             "subject": subject,
                             "html": html_body if html_body else text_body.replace("\n", "<br>"),
