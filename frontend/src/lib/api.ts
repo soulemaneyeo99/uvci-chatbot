@@ -219,7 +219,12 @@ export const settingsAPI = {
   syncMoodle: async () => {
     const response = await api.post('/api/settings/sync');
     return response.data;
-  }
+  },
+
+  testEmail: async () => {
+    const response = await api.get('/api/settings/test-email');
+    return response.data;
+  },
 };
 
 export const dashboardAPI = {
