@@ -145,6 +145,7 @@ class EmailService:
                             "to": [to_email],
                             "subject": subject,
                             "html": html_body if html_body else text_body.replace("\n", "<br>"),
+                            "text": text_body,
                         },
                         timeout=10.0
                     )
@@ -211,8 +212,8 @@ class EmailService:
                 <p>Si vous lisez ceci, c'est que votre Assistant UVCI peut communiquer avec le monde extérieur.</p>
                 <div style="background: #fdf2f8; padding: 15px; border-radius: 8px; margin: 20px 0;">
                     <strong>Détails du test :</strong><br>
-                    • Serveur : {self.smtp_host}<br>
-                    • Utilisateur : {self.smtp_user}<br>
+                    • Méthode : {"🚀 Resend API" if self.resend_api_key else "📧 SMTP Standard"}<br>
+                    • Destinataire : {email}<br>
                     • Statut : Production (Render)
                 </div>
                 <p style="font-size: 12px; color: #666;">Envoyé le {settings.APP_NAME} v{settings.APP_VERSION}</p>

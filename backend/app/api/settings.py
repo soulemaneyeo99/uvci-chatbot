@@ -86,6 +86,41 @@ async def sync_moodle(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de la synchronisation : {str(e)}")
+@router.get("/test-assignments-email")
+async def test_assignments_email(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """Récupère les vrais devoirs et envoie la notification email immédiatement"""
+    if not current_user.uvci_username or not current_user.uvci_password_encrypted:
+        raise HTTPException(status_code=400, detail="Compte UVCI non configuré.")
+    
+    try:
+        # 1. Déchiffrer
+        plain_password = decrypt(current_user.uvci_password_encrypted)
+        
+        # 2. Scraper Moodle
+        assignments = await moodle_service.get_assignments(
+            current_user.uvci_username,
+            plain_password
+        )
+        
+        if not assignments:
+            return {"message": "✅ Aucun devoir à venir détecté sur Moodle. Pas de mail envoyé.", "count": 0}
+            
+        # 3. Envoyer l'email réel
+        from app.services.email_service import email_service
+        success = await email_service.send_assignment_notification(current_user.email, assignments)
+        
+        if not success:
+            raise HTTPException(status_code=500, detail="Échec de l'envoi de la notification réelle.")
+            
+        return {
+            "message": f"🔥 Alerte réelle envoyée à {current_user.email} avec {len(assignments)} devoirs.",
+            "count": len(assignments)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur : {str(e)}")
+
 @router.get("/test-email")
 async def test_email(
     current_user: User = Depends(auth_service.get_current_user)

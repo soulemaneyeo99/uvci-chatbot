@@ -180,7 +180,33 @@ export default function SettingsPage() {
                                         className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 border border-gray-200 text-gray-600 font-medium rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50"
                                     >
                                         <Bell size={18} className="text-uvci-purple" />
-                                        {isSaving ? "Envoi du test..." : "Tester l'envoi d'email"}
+                                        {isSaving ? "Envoi du test..." : "Tester la connexion (Email vide)"}
+                                    </button>
+
+                                    {/* Bouton de Test Réel */}
+                                    <button
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            try {
+                                                const res = await settingsAPI.testAssignmentsEmail();
+                                                setFeedback({
+                                                    type: 'success',
+                                                    message: res.message
+                                                });
+                                            } catch (error: any) {
+                                                setFeedback({
+                                                    type: 'error',
+                                                    message: error.response?.data?.detail || "Échec de l'envoi de l'alerte réelle."
+                                                });
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }}
+                                        disabled={isSaving}
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-uvci-orange to-uvci-purple text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50"
+                                    >
+                                        <CheckCircle size={18} />
+                                        {isSaving ? "Scan et envoi..." : "Tester l'alerte (Vrais devoirs)"}
                                     </button>
                                 </div>
                             ) : (

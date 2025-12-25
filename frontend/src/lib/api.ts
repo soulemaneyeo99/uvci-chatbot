@@ -225,6 +225,10 @@ export const settingsAPI = {
     const response = await api.get('/api/settings/test-email');
     return response.data;
   },
+  testAssignmentsEmail: async () => {
+    const response = await api.get('/api/settings/test-assignments-email');
+    return response.data;
+  }
 };
 
 export const dashboardAPI = {
