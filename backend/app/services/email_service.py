@@ -126,6 +126,7 @@ class EmailService:
         """Envoie un email via SMTP (Supporte HTML + Texte)"""
         try:
             import smtplib
+            import ssl
             from email.mime.text import MIMEText
             from email.mime.multipart import MIMEMultipart
             
@@ -134,21 +135,28 @@ class EmailService:
             msg['To'] = to_email
             msg['Subject'] = subject
             
-            # Attacher les deux versions
             msg.attach(MIMEText(text_body, 'plain', 'utf-8'))
             if html_body:
                 msg.attach(MIMEText(html_body, 'html', 'utf-8'))
             
-            server = smtplib.SMTP(self.smtp_host, self.smtp_port)
-            server.starttls()
+            # Gestion intelligente du port
+            if self.smtp_port == 465:
+                # SSL Direct
+                context = ssl.create_default_context()
+                server = smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context)
+            else:
+                # STARTTLS (Port 587 généralement)
+                server = smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10)
+                server.starttls()
+            
             server.login(self.smtp_user, self.smtp_password)
             server.send_message(msg)
             server.quit()
             
-            logger.info(f"✅ Email Premium envoyé avec succès à {to_email}")
+            logger.info(f"✅ Email envoyé avec succès à {to_email}")
             return True
         except Exception as e:
-            logger.error(f"❌ Erreur lors de l'envoi de l'email: {e}")
+            logger.error(f"❌ Erreur SMTP ({self.smtp_host}:{self.smtp_port}): {e}")
             return False
 
     async def send_test_email(self, email: str) -> bool:
