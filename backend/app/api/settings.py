@@ -86,3 +86,13 @@ async def sync_moodle(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de la synchronisation : {str(e)}")
+@router.get("/test-email")
+async def test_email(
+    current_user: User = Depends(auth_service.get_current_user)
+):
+    """Envoie un email de test à l'utilisateur actuel"""
+    from app.services.email_service import email_service
+    success = await email_service.send_test_email(current_user.email)
+    if not success:
+        raise HTTPException(status_code=500, detail="Échec de l'envoi de l'email de test. Vérifiez vos variables d'environnement SMTP.")
+    return {"message": f"Email de test envoyé avec succès à {current_user.email}"}

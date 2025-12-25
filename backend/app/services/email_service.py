@@ -151,5 +151,28 @@ class EmailService:
             logger.error(f"❌ Erreur lors de l'envoi de l'email: {e}")
             return False
 
+    async def send_test_email(self, email: str) -> bool:
+        """Envoie un email de test pour valider la configuration SMTP"""
+        subject = "🧪 Test de connexion SMTP - Assistant UVCI"
+        text_body = "Ceci est un email de test pour confirmer que votre serveur SMTP est correctement configuré sur Render."
+        html_body = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4;">
+            <div style="max-width: 600px; margin: auto; background: white; padding: 30px; border-radius: 10px; border: 2px solid #4c1d95;">
+                <h1 style="color: #4c1d95;">Connexion SMTP Réussie ! ✅</h1>
+                <p>Si vous lisez ceci, c'est que votre Assistant UVCI peut communiquer avec le monde extérieur.</p>
+                <div style="background: #fdf2f8; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                    <strong>Détails du test :</strong><br>
+                    • Serveur : {self.smtp_host}<br>
+                    • Utilisateur : {self.smtp_user}<br>
+                    • Statut : Production (Render)
+                </div>
+                <p style="font-size: 12px; color: #666;">Envoyé le {settings.APP_NAME} v{settings.APP_VERSION}</p>
+            </div>
+        </body>
+        </html>
+        """
+        return await self._send_smtp_email(email, subject, text_body, html_body)
+
 email_service = EmailService()
 

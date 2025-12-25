@@ -155,6 +155,32 @@ export default function SettingsPage() {
                                         <School size={18} />
                                         {isSaving ? "Synchronisation..." : "Synchroniser maintenant"}
                                     </button>
+
+                                    {/* Bouton de Test Email */}
+                                    <button
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            try {
+                                                await settingsAPI.testEmail();
+                                                setFeedback({
+                                                    type: 'success',
+                                                    message: `Email de test envoyé ! Vérifiez votre boîte (et vos spams).`
+                                                });
+                                            } catch (error: any) {
+                                                setFeedback({
+                                                    type: 'error',
+                                                    message: error.response?.data?.detail || "Échec de l'envoi du test SMTP."
+                                                });
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }}
+                                        disabled={isSaving}
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 border border-gray-200 text-gray-600 font-medium rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50"
+                                    >
+                                        <Bell size={18} className="text-uvci-purple" />
+                                        {isSaving ? "Envoi du test..." : "Tester l'envoi d'email"}
+                                    </button>
                                 </div>
                             ) : (
                                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 flex items-center gap-3">
