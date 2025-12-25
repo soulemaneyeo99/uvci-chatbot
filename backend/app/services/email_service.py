@@ -1,6 +1,7 @@
 import logging
 import os
 from typing import Optional
+from datetime import datetime
 from app.config import settings
 
 logger = logging.getLogger(__name__)
@@ -123,40 +124,52 @@ class EmailService:
             return True
 
     async def _send_smtp_email(self, to_email: str, subject: str, text_body: str, html_body: str = None) -> bool:
-        """Envoie un email via SMTP (Supporte HTML + Texte)"""
+        """Envoie un email via aiosmtplib (Async)"""
+        if not self.smtp_enabled:
+            logger.warning("🚫 SMTP désactivé par configuration.")
+            return False
+
         try:
-            import smtplib
-            import ssl
-            from email.mime.text import MIMEText
-            from email.mime.multipart import MIMEMultipart
-            
-            msg = MIMEMultipart('alternative')
-            msg['From'] = f"Assistant UVCI <{self.from_email}>"
-            msg['To'] = to_email
-            msg['Subject'] = subject
-            
-            msg.attach(MIMEText(text_body, 'plain', 'utf-8'))
+            import aiosmtplib
+            from email.message import EmailMessage
+            import socket
+
+            # Diagnostic DNS
+            try:
+                ip = socket.gethostbyname(self.smtp_host)
+                logger.info(f"🔍 Diagnostic DNS: {self.smtp_host} resolved to {ip}")
+            except Exception as dns_err:
+                logger.error(f"❌ Erreur DNS pour {self.smtp_host}: {dns_err}")
+
+            msg = EmailMessage()
+            msg["From"] = f"Assistant UVCI <{self.from_email}>"
+            msg["To"] = to_email
+            msg["Subject"] = subject
+
+            msg.set_content(text_body)
             if html_body:
-                msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+                msg.add_alternative(html_body, subtype="html")
+
+            # Connexion async
+            use_tls = (self.smtp_port == 465)
             
-            # Gestion intelligente du port
-            if self.smtp_port == 465:
-                # SSL Direct
-                context = ssl.create_default_context()
-                server = smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context)
-            else:
-                # STARTTLS (Port 587 généralement)
-                server = smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=10)
-                server.starttls()
+            smtp_client = aiosmtplib.SMTP(
+                hostname=self.smtp_host,
+                port=self.smtp_port,
+                use_tls=use_tls,
+                timeout=15
+            )
+
+            async with smtp_client:
+                if not use_tls:
+                    await smtp_client.starttls()
+                await smtp_client.login(self.smtp_user, self.smtp_password)
+                await smtp_client.send_message(msg)
             
-            server.login(self.smtp_user, self.smtp_password)
-            server.send_message(msg)
-            server.quit()
-            
-            logger.info(f"✅ Email envoyé avec succès à {to_email}")
+            logger.info(f"✅ Email envoyé avec succès via aiosmtplib à {to_email}")
             return True
         except Exception as e:
-            logger.error(f"❌ Erreur SMTP ({self.smtp_host}:{self.smtp_port}): {e}")
+            logger.error(f"❌ Erreur SMTP-Async ({self.smtp_host}:{self.smtp_port}): {e}")
             return False
 
     async def send_test_email(self, email: str) -> bool:
