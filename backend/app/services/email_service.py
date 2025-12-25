@@ -17,6 +17,7 @@ class EmailService:
         self.smtp_user = settings.SMTP_USER
         self.smtp_password = settings.SMTP_PASSWORD
         self.from_email = settings.FROM_EMAIL
+        self.resend_api_key = settings.RESEND_API_KEY
         
     async def send_password_reset_email(
         self, 
@@ -124,9 +125,42 @@ class EmailService:
             return True
 
     async def _send_smtp_email(self, to_email: str, subject: str, text_body: str, html_body: str = None) -> bool:
-        """Envoie un email via aiosmtplib (Async)"""
+        """Envoie un email via Resend API (Prioritaire) ou SMTP (Fallback)"""
+        
+        # 1. Tentative via Resend API (HTTP - Très robuste sur Render)
+        if self.resend_api_key:
+            try:
+                import httpx
+                logger.info(f"🚀 Tentative d'envoi via Resend API pour {to_email}")
+                
+                async with httpx.AsyncClient() as client:
+                    response = await client.post(
+                        "https://api.resend.com/emails",
+                        headers={
+                            "Authorization": f"Bearer {self.resend_api_key}",
+                            "Content-Type": "application/json",
+                        },
+                        json={
+                            "from": f"Assistant UVCI <onboarding@resend.dev>" if ".dev" in self.resend_api_key else f"Assistant UVCI <{self.from_email}>",
+                            "to": [to_email],
+                            "subject": subject,
+                            "html": html_body if html_body else text_body.replace("\n", "<br>"),
+                        },
+                        timeout=10.0
+                    )
+                    
+                    if response.status_code in [200, 201]:
+                        logger.info(f"✅ Email envoyé via Resend API à {to_email}")
+                        return True
+                    else:
+                        logger.error(f"❌ Erreur Resend API ({response.status_code}): {response.text}")
+                        # On continue vers le fallback SMTP si Resend échoue
+            except Exception as e:
+                logger.error(f"❌ Erreur lors de l'appel à Resend API: {e}")
+
+        # 2. Fallback SMTP (aiosmtplib)
         if not self.smtp_enabled:
-            logger.warning("🚫 SMTP désactivé par configuration.")
+            logger.warning("🚫 SMTP désactivé et Resend non configuré.")
             return False
 
         try:
@@ -134,12 +168,7 @@ class EmailService:
             from email.message import EmailMessage
             import socket
 
-            # Diagnostic DNS
-            try:
-                ip = socket.gethostbyname(self.smtp_host)
-                logger.info(f"🔍 Diagnostic DNS: {self.smtp_host} resolved to {ip}")
-            except Exception as dns_err:
-                logger.error(f"❌ Erreur DNS pour {self.smtp_host}: {dns_err}")
+            logger.info(f"🔄 Fallback SMTP pour {to_email} (Host: {self.smtp_host})")
 
             msg = EmailMessage()
             msg["From"] = f"Assistant UVCI <{self.from_email}>"
@@ -150,14 +179,12 @@ class EmailService:
             if html_body:
                 msg.add_alternative(html_body, subtype="html")
 
-            # Connexion async
             use_tls = (self.smtp_port == 465)
-            
             smtp_client = aiosmtplib.SMTP(
                 hostname=self.smtp_host,
                 port=self.smtp_port,
                 use_tls=use_tls,
-                timeout=15
+                timeout=10
             )
 
             async with smtp_client:
@@ -166,7 +193,7 @@ class EmailService:
                 await smtp_client.login(self.smtp_user, self.smtp_password)
                 await smtp_client.send_message(msg)
             
-            logger.info(f"✅ Email envoyé avec succès via aiosmtplib à {to_email}")
+            logger.info(f"✅ Email envoyé via SMTP à {to_email}")
             return True
         except Exception as e:
             logger.error(f"❌ Erreur SMTP-Async ({self.smtp_host}:{self.smtp_port}): {e}")

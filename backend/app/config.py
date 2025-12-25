@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     SMTP_USER: str = ""
     SMTP_PASSWORD: str = ""
     FROM_EMAIL: str = "noreply@uvci.edu.ci"
+    RESEND_API_KEY: str = ""
     
     @property
     def allowed_origins_list(self) -> List[str]:
