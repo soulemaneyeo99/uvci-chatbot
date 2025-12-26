@@ -157,33 +157,7 @@ export default function SettingsPage() {
                                         {isSaving ? "Synchronisation..." : "Synchroniser maintenant"}
                                     </button>
 
-                                    {/* Bouton de Test Email */}
-                                    <button
-                                        onClick={async () => {
-                                            setIsSaving(true);
-                                            try {
-                                                await settingsAPI.testEmail();
-                                                setFeedback({
-                                                    type: 'success',
-                                                    message: `Email de test envoyé ! Vérifiez votre boîte (et vos spams).`
-                                                });
-                                            } catch (error: any) {
-                                                setFeedback({
-                                                    type: 'error',
-                                                    message: error.response?.data?.detail || "Échec de l'envoi du test SMTP."
-                                                });
-                                            } finally {
-                                                setIsSaving(false);
-                                            }
-                                        }}
-                                        disabled={isSaving}
-                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 border border-gray-200 text-gray-600 font-medium rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50"
-                                    >
-                                        <Bell size={18} className="text-uvci-purple" />
-                                        {isSaving ? "Envoi du test..." : "Tester la connexion (Email vide)"}
-                                    </button>
-
-                                    {/* Bouton de Test Réel */}
+                                    {/* Bouton de Test Réel (Prioritaire) */}
                                     <button
                                         onClick={async () => {
                                             setIsSaving(true);
@@ -203,10 +177,36 @@ export default function SettingsPage() {
                                             }
                                         }}
                                         disabled={isSaving}
-                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-uvci-orange to-uvci-purple text-white font-bold rounded-xl hover:shadow-lg transition-all disabled:opacity-50"
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-uvci-purple text-white font-bold rounded-xl hover:bg-opacity-90 transition-all shadow-md disabled:opacity-50"
                                     >
-                                        <CheckCircle size={18} />
-                                        {isSaving ? "Scan et envoi..." : "Tester l'alerte (Vrais devoirs)"}
+                                        <Bell size={18} />
+                                        {isSaving ? "Scan Moodle en cours..." : "Tester l'alerte (Vrais devoirs)"}
+                                    </button>
+
+                                    {/* Bouton de Test Connection (Simple) */}
+                                    <button
+                                        onClick={async () => {
+                                            setIsSaving(true);
+                                            try {
+                                                await settingsAPI.testEmail();
+                                                setFeedback({
+                                                    type: 'success',
+                                                    message: `Email de test envoyé ! Vérifiez votre boîte (et vos spams).`
+                                                });
+                                            } catch (error: any) {
+                                                setFeedback({
+                                                    type: 'error',
+                                                    message: error.response?.data?.detail || "Échec de l'envoi du test."
+                                                });
+                                            } finally {
+                                                setIsSaving(false);
+                                            }
+                                        }}
+                                        disabled={isSaving}
+                                        className="w-full flex items-center justify-center gap-2 py-3 bg-gray-50 border border-gray-200 text-gray-500 font-medium rounded-xl hover:bg-gray-100 transition-all disabled:opacity-50"
+                                    >
+                                        <CheckCircle size={18} className="text-uvci-orange" />
+                                        {isSaving ? "Envoi du test..." : "Tester la connexion (Email vide)"}
                                     </button>
                                 </div>
                             ) : (
