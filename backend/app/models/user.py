@@ -20,3 +20,4 @@ class User(Base):
     # UVCI Credentials (Encrypted)
     uvci_username = Column(String, nullable=True)
     uvci_password_encrypted = Column(String, nullable=True)
+    last_moodle_sync = Column(DateTime(timezone=True), nullable=True)

@@ -62,7 +62,12 @@ class SchedulerService:
                     from app.services.email_service import email_service
                     await email_service.send_assignment_notification(user.email, assignments)
                     logger.info(f"📧 Notification envoyée à {user.email}")
-                else:
+                
+                # Mettre à jour la date de dernière synchro (Même si 0 devoirs)
+                from datetime import datetime
+                user.last_moodle_sync = datetime.now()
+                db.commit()
+                if not assignments:
                     logger.info(f"✅ Rien à signaler pour {user.email}")
                     
         except Exception as e:

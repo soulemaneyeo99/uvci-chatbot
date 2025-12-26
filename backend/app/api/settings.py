@@ -17,6 +17,7 @@ async def get_uvci_status(
     return {
         "is_connected": bool(current_user.uvci_username),
         "username": current_user.uvci_username,
+        "last_check": current_user.last_moodle_sync.isoformat() if current_user.last_moodle_sync else None,
         "message": "Connecté" if current_user.uvci_username else "Non connecté"
     }
 

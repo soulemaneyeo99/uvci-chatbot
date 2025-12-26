@@ -123,6 +123,12 @@ export default function SettingsPage() {
                                             <div>
                                                 <h3 className="font-bold text-green-900">Compte Connecté</h3>
                                                 <p className="text-sm text-green-700">Utilisateur : {status.username}</p>
+                                                {status.last_check && (
+                                                    <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                                                        <CheckCircle size={10} />
+                                                        Dernière vérification : {new Date(status.last_check).toLocaleString('fr-FR')}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         <button
