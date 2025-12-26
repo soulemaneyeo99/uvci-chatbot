@@ -58,11 +58,7 @@ class EmailService:
         </html>
         """
         
-        if self.smtp_enabled:
-            return await self._send_smtp_email(email, subject, text_body, html_body)
-        else:
-            logger.info(f"🔐 [DEV MODE] Reset link for {email}: {reset_link}")
-            return True
+        return await self._send_smtp_email(email, subject, text_body, html_body)
 
     async def send_assignment_notification(self, email: str, assignments: list) -> bool:
         """Envoie une notification de devoirs ultra-pro (HTML)"""
@@ -118,11 +114,7 @@ class EmailService:
         
         text_body = f"Bonjour, {len(assignments)} nouveaux devoirs ont été détectés sur Moodle. Connectez-vous à votre dashboard Vision 360 pour les voir."
 
-        if self.smtp_enabled:
-            return await self._send_smtp_email(email, subject, text_body, html_body)
-        else:
-            logger.info(f"📧 [DEV MODE] Notif envoyée à {email}")
-            return True
+        return await self._send_smtp_email(email, subject, text_body, html_body)
 
     async def _send_smtp_email(self, to_email: str, subject: str, text_body: str, html_body: str = None) -> bool:
         """Envoie un email via Resend API (Prioritaire) ou SMTP (Fallback)"""
@@ -161,7 +153,7 @@ class EmailService:
 
         # 2. Fallback SMTP (aiosmtplib)
         if not self.smtp_enabled:
-            logger.warning("🚫 SMTP désactivé et Resend non configuré.")
+            logger.warning("🚫 SMTP désactivé et Resend non configuré (ou échoué).")
             return False
 
         try:
