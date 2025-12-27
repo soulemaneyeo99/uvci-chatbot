@@ -68,5 +68,12 @@ from app.services.scheduler_service import scheduler_service
 
 @app.on_event("startup")
 async def startup_event():
+    # S'assurer que la base est à jour (migration SQLite)
+    try:
+        from migrate_db import migrate
+        migrate()
+    except Exception as e:
+        print(f"Erreur migration: {e}")
+    
     scheduler_service.start()
 

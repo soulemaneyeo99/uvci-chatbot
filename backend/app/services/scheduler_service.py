@@ -19,7 +19,7 @@ class SchedulerService:
         self.scheduler.add_job(
             self.check_all_homeworks, 
             'interval', 
-            minutes=300, 
+            minutes=180, 
             next_run_time=datetime.now(),
             misfire_grace_time=3600
         )
